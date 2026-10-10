@@ -215,8 +215,15 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
         .aut-btn:active { transform: translateY(0) scale(.99); }
         .aut-card { transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease; }
         .aut-card:hover { box-shadow: 0 6px 18px rgba(11,61,46,.10); transform: translateY(-1px); border-color: #c3cbc2; }
-        .aut-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-        @media (max-width: 520px) {
+        .aut-main { width: 100%; max-width: 680px; margin: 0 auto; text-align: center; }
+        .aut-main .aut-sub { margin-left: auto !important; margin-right: auto !important; }
+        .aut-services { text-align: center; }
+        .aut-services .aut-sub2 { margin-left: auto !important; margin-right: auto !important; }
+        .aut-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+        @media (max-width: 900px) {
+          .aut-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 560px) {
           .aut-grid { grid-template-columns: 1fr; gap: 12px; }
           .aut-card { padding: 16px 14px !important; }
           .aut-h1 { font-size: 44px !important; }
@@ -238,14 +245,15 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
           </div>
         </header>
 
-        <h1 className="aut-h1" style={styles.h1}>
-          Autentique
-          <br />
-          qualquer coisa.
-        </h1>
-        <p style={styles.sub}>
-          Envie uma imagem ou documento e receba seu carimbo oficial de inutilidade.
-        </p>
+        <div className="aut-main">
+          <h1 className="aut-h1" style={styles.h1}>
+            Autentique
+            <br />
+            qualquer coisa.
+          </h1>
+          <p className="aut-sub" style={styles.sub}>
+            Envie uma imagem ou documento e receba seu carimbo oficial de inutilidade.
+          </p>
 
         <div
           style={{
@@ -344,28 +352,32 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
           </div>
         )}
 
-        <div style={styles.eyebrow}>OUTROS SERVIÇOS</div>
-        <h2 style={styles.h2}>Precisa de uma certidão?</h2>
-        <p style={styles.sub2}>
-          Você também pode emitir certidões inúteis para o que desejar.
-        </p>
+        </div>
 
-        <div className="aut-grid">
-          {servicos.map((s) => (
-            <button
-              key={s.id}
-              className="aut-card"
-              style={styles.card}
-              onClick={() => onSelectServico?.(s.id)}
-            >
-              <div style={styles.circle}>{icons[s.id]}</div>
-              <div style={styles.cardText}>
-                <div style={styles.cardT}>{s.titulo}</div>
-                <div style={styles.cardD}>{s.desc}</div>
-              </div>
-              {icons.chevron}
-            </button>
-          ))}
+        <div className="aut-services">
+          <div style={styles.eyebrow}>OUTROS SERVIÇOS</div>
+          <h2 style={styles.h2}>Precisa de uma certidão?</h2>
+          <p className="aut-sub2" style={styles.sub2}>
+            Você também pode emitir certidões inúteis para o que desejar.
+          </p>
+
+          <div className="aut-grid">
+            {servicos.map((s) => (
+              <button
+                key={s.id}
+                className="aut-card"
+                style={styles.card}
+                onClick={() => onSelectServico?.(s.id)}
+              >
+                <div style={styles.circle}>{icons[s.id]}</div>
+                <div style={styles.cardText}>
+                  <div style={styles.cardT}>{s.titulo}</div>
+                  <div style={styles.cardD}>{s.desc}</div>
+                </div>
+                {icons.chevron}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -381,7 +393,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
   },
-  container: { width: "100%", maxWidth: 560, padding: "28px 18px 40px" },
+  container: { width: "100%", maxWidth: 940, padding: "28px 24px 40px" },
   logo: { display: "flex", alignItems: "center", gap: 14, marginBottom: 36 },
   logoText: { display: "flex", flexDirection: "column", lineHeight: 1 },
   logoSmall: { fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", color: C.muted },

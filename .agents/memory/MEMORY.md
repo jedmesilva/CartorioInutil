@@ -1,0 +1,1 @@
+- [Layout direction](cartorio-layout.md) — Keep the original page as one centered column, with the cartório logo left-aligned in the header.
