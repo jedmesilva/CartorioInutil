@@ -420,9 +420,12 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
             qualquer coisa.
           </h1>
           <p className="aut-sub" style={styles.sub}>
-            Envie uma imagem ou documento e receba seu carimbo oficial de inutilidade.
+            {arquivo
+              ? "Confira o arquivo selecionado e autentique quando estiver pronto."
+              : "Envie uma imagem ou documento e receba seu carimbo oficial de inutilidade."}
           </p>
 
+        {!arquivo && (
         <div
           style={{
             ...styles.drop,
@@ -465,13 +468,9 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
               if (!processando) inputRef.current?.click();
             }}
           >
-            {arquivo ? "Trocar arquivo" : "Selecionar arquivo"}
+            Selecionar arquivo
           </button>
-          <p style={styles.hint}>
-            {arquivo
-              ? "Confira a prévia abaixo e autentique quando quiser."
-              : "Arraste e solte aqui ou clique para selecionar."}
-          </p>
+          <p style={styles.hint}>Arraste e solte aqui ou clique para selecionar.</p>
 
           <div style={styles.tipos}>
             <div style={styles.tipo}>
@@ -491,6 +490,7 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
             </div>
           </div>
         </div>
+        )}
 
         {arquivo && (
           <div className="aut-file-card" style={styles.arquivoSelecionado} aria-label="Arquivo selecionado">
