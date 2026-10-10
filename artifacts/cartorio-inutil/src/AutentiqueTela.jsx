@@ -138,6 +138,7 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [imagemPreviewFalhou, setImagemPreviewFalhou] = useState(false);
   const [processando, setProcessando] = useState(false);
+  const [tela, setTela] = useState("selecao");
   const [resultado, setResultado] = useState(null);
   const [erro, setErro] = useState(null);
   const [avisoCompartilhamento, setAvisoCompartilhamento] = useState("");
@@ -198,6 +199,7 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
     setErro(null);
     setAvisoCompartilhamento("");
     setProcessando(true);
+    setTela("progresso");
     try {
       const blob = await carimbar.mutateAsync({ data: { arquivo } });
       const ext = blob.type === "application/pdf" ? "pdf" : blob.type === "image/jpeg" ? "jpg" : "png";
@@ -208,13 +210,25 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
         imagem: blob.type.startsWith("image/"),
         blob,
       });
+      setTela("resultado");
     } catch (e) {
       console.error(e);
       const mensagemApi = e?.data?.erro;
       setErro(mensagemApi || e.message || "Não foi possível carimbar este arquivo.");
+      setTela("selecao");
     } finally {
       setProcessando(false);
     }
+  };
+
+  const autenticarOutroArquivo = () => {
+    setTela("selecao");
+    setArquivo(null);
+    setImagemPreviewFalhou(false);
+    setResultado(null);
+    setErro(null);
+    setAvisoCompartilhamento("");
+    if (inputRef.current) inputRef.current.value = "";
   };
 
   const compartilharArquivo = async () => {
@@ -261,6 +275,17 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
         .aut-services { text-align: center; }
         .aut-services .aut-sub2 { margin-left: auto !important; margin-right: auto !important; }
         .aut-file-preview { width: 84px !important; height: 84px !important; flex-basis: 84px !important; }
+        .aut-feedback-screen, .aut-result-screen { width: 100%; max-width: 760px; margin: 54px auto 72px; text-align: center; }
+        .aut-feedback-card { padding: 40px 32px; background: ${C.card}; border: 1px solid ${C.border}; border-radius: 22px; }
+        .aut-spinner { width: 54px; height: 54px; margin: 0 auto 24px; border: 4px solid #dce4dc; border-top-color: ${C.dark}; border-radius: 50%; animation: aut-spin .9s linear infinite; }
+        .aut-progress-track { height: 8px; margin: 28px 0 18px; overflow: hidden; background: #e4e8e2; border-radius: 999px; }
+        .aut-progress-indicator { width: 36%; height: 100%; background: ${C.dark}; border-radius: inherit; animation: aut-progress 1.5s ease-in-out infinite; }
+        .aut-result-preview { width: 100%; margin-top: 24px; overflow: hidden; background: #fff; border: 1px solid ${C.border}; border-radius: 16px; }
+        .aut-result-preview iframe { display: block; width: 100%; height: 600px; border: 0; background: #fff; }
+        .aut-result-actions { display: flex; justify-content: center; gap: 12px; margin-top: 22px; }
+        .aut-result-actions > * { min-width: 210px; }
+        @keyframes aut-spin { to { transform: rotate(360deg); } }
+        @keyframes aut-progress { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
         .aut-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
         @media (max-width: 900px) {
           .aut-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -272,6 +297,11 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
           .aut-file-card { padding: 12px !important; gap: 10px !important; }
           .aut-file-preview { width: 68px !important; height: 68px !important; flex-basis: 68px !important; }
           .aut-remove { padding: 8px 10px !important; font-size: 12px !important; }
+          .aut-feedback-screen, .aut-result-screen { margin-top: 30px; }
+          .aut-feedback-card { padding: 30px 18px; }
+          .aut-result-preview iframe { height: 480px; }
+          .aut-result-actions { flex-direction: column; }
+          .aut-result-actions > * { width: 100%; min-width: 0; }
         }
       `}</style>
 
@@ -290,6 +320,99 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
           </div>
         </header>
 
+        {tela === "progresso" ? (
+          <section className="aut-feedback-screen" aria-labelledby="aut-feedback-title">
+            <div className="aut-feedback-card" role="status" aria-live="polite">
+              <div className="aut-spinner" aria-hidden="true" />
+              <p style={styles.feedbackLabel}>AUTENTICAÇÃO EM ANDAMENTO</p>
+              <h1 id="aut-feedback-title" style={styles.feedbackTitle}>Aplicando o carimbo</h1>
+              <p style={styles.feedbackDescription}>
+                Enviando e autenticando <strong>{arquivo?.name}</strong>.
+              </p>
+              <div
+                className="aut-progress-track"
+                role="progressbar"
+                aria-label="Autenticação em andamento"
+              >
+                <div className="aut-progress-indicator" />
+              </div>
+              <p style={styles.feedbackHint}>
+                Aguarde enquanto preparamos seu arquivo. O tempo pode variar conforme o documento.
+              </p>
+            </div>
+          </section>
+        ) : tela === "resultado" && resultado ? (
+          <section className="aut-result-screen" aria-labelledby="aut-result-title">
+            <div style={styles.successLabel}>
+              <span style={styles.successMark} aria-hidden="true">✓</span>
+              AUTENTICAÇÃO CONCLUÍDA
+            </div>
+            <h1 id="aut-result-title" style={styles.feedbackTitle}>Seu arquivo está pronto.</h1>
+            <p style={styles.feedbackDescription}>
+              O carimbo de inutilidade foi aplicado com sucesso.
+            </p>
+
+            <div style={styles.resultFileCard}>
+              <div style={styles.resultFileIcon} aria-hidden="true">
+                {resultado.imagem ? icons.image : icons.file}
+              </div>
+              <div style={styles.resultFileInfo}>
+                <div style={styles.resultFileName}>{resultado.nome}</div>
+                <div style={styles.resultFileMeta}>
+                  {resultado.blob.type === "application/pdf"
+                    ? "PDF"
+                    : resultado.blob.type.replace("image/", "").toUpperCase()}
+                </div>
+              </div>
+            </div>
+
+            <div className="aut-result-preview">
+              {resultado.imagem ? (
+                <img
+                  src={resultado.url}
+                  alt="Arquivo autenticado com o carimbo aplicado"
+                  style={styles.resultImage}
+                />
+              ) : (
+                <iframe
+                  src={resultado.url}
+                  title="Prévia do PDF autenticado"
+                />
+              )}
+            </div>
+
+            <div className="aut-result-actions">
+              <a className="aut-btn" href={resultado.url} download={resultado.nome} style={styles.resBtn}>
+                Baixar arquivo
+              </a>
+              <button
+                className="aut-btn"
+                type="button"
+                onClick={compartilharArquivo}
+                style={{
+                  ...styles.resBtn,
+                  border: "none",
+                  fontFamily: "inherit",
+                  cursor: "pointer",
+                }}
+              >
+                Compartilhar
+              </button>
+            </div>
+            {avisoCompartilhamento && (
+              <p role="status" style={styles.resTxt}>{avisoCompartilhamento}</p>
+            )}
+            <button
+              className="aut-btn"
+              type="button"
+              onClick={autenticarOutroArquivo}
+              style={styles.novaAutenticacao}
+            >
+              Autenticar outro arquivo
+            </button>
+          </section>
+        ) : (
+          <>
         <div className="aut-main">
           <h1 className="aut-h1" style={styles.h1}>
             Autentique
@@ -492,6 +615,8 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
             ))}
           </div>
         </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -615,6 +740,95 @@ const styles = {
   },
   resImg: { maxWidth: "100%", maxHeight: 320, borderRadius: 10, objectFit: "contain" },
   resTxt: { margin: 0, fontSize: 15, color: C.muted, textAlign: "center" },
+  feedbackLabel: {
+    margin: "0 0 12px",
+    color: C.dark,
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: "0.22em",
+  },
+  feedbackTitle: {
+    margin: 0,
+    color: C.title,
+    fontSize: "clamp(34px, 6vw, 48px)",
+    lineHeight: 1.05,
+    fontWeight: 800,
+    letterSpacing: "-0.035em",
+  },
+  feedbackDescription: {
+    margin: "16px auto 0",
+    maxWidth: 560,
+    color: C.muted,
+    fontSize: 17,
+    lineHeight: 1.5,
+    overflowWrap: "anywhere",
+  },
+  feedbackHint: { margin: 0, color: C.muted, fontSize: 14, lineHeight: 1.45 },
+  successLabel: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 9,
+    marginBottom: 16,
+    color: C.dark,
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: "0.18em",
+  },
+  successMark: {
+    width: 26,
+    height: 26,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: "50%",
+    background: C.circle,
+    fontSize: 16,
+    letterSpacing: 0,
+  },
+  resultFileCard: {
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    marginTop: 26,
+    padding: 16,
+    border: `1px solid ${C.border}`,
+    borderRadius: 16,
+    background: C.card,
+    textAlign: "left",
+  },
+  resultFileIcon: {
+    width: 52,
+    height: 52,
+    flex: "0 0 52px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: "50%",
+    background: C.circle,
+  },
+  resultFileInfo: { flex: "1 1 auto", minWidth: 0 },
+  resultFileName: {
+    color: C.title,
+    fontSize: 15,
+    fontWeight: 700,
+    overflowWrap: "anywhere",
+  },
+  resultFileMeta: { marginTop: 5, color: C.muted, fontSize: 13 },
+  resultImage: { display: "block", width: "100%", maxHeight: 560, margin: "0 auto", objectFit: "contain" },
+  novaAutenticacao: {
+    display: "block",
+    margin: "24px auto 0",
+    padding: "13px 22px",
+    border: `1px solid ${C.border}`,
+    borderRadius: 999,
+    background: "transparent",
+    color: C.title,
+    fontSize: 15,
+    fontWeight: 600,
+    fontFamily: "inherit",
+    cursor: "pointer",
+  },
   resBtn: {
     background: C.dark,
     color: "#fff",
