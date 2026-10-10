@@ -10,18 +10,33 @@ const esc = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-// Texto distribuído por todo o círculo, letra a letra (sem <textPath>, que nem
-// todo renderizador de SVG suporta, como o librsvg usado pelo sharp).
-// O trecho `destaque` fica centralizado no topo do selo.
-function textoEmCirculo(texto, destaque, cx, cy, raio, tamanho) {
+// Texto em arco superior, letra a letra (sem <textPath>, que nem todo
+// renderizador de SVG suporta, como o librsvg usado pelo sharp). Os avanços
+// aproximam a largura real das maiúsculas para evitar que espaços entre palavras
+// fiquem exagerados ou que o início e o fim se encostem.
+function textoEmCirculo(texto, cx, cy, raio, tamanho) {
   const letras = [...texto];
-  const passo = (2 * Math.PI) / letras.length;
-  const inicio = texto.indexOf(destaque);
-  const centro = inicio + ([...destaque].length - 1) / 2;
+  const proporcao = {
+    A: 0.68, B: 0.65, C: 0.70, D: 0.72, E: 0.58, F: 0.55, G: 0.75,
+    H: 0.68, I: 0.31, J: 0.52, K: 0.67, L: 0.55, M: 0.86, N: 0.70,
+    O: 0.76, P: 0.61, Q: 0.76, R: 0.66, S: 0.61, T: 0.57, U: 0.69,
+    V: 0.66, W: 0.94, X: 0.64, Y: 0.65, Z: 0.63,
+  };
+  const avancos = letras.map((ch) =>
+    tamanho * (ch === " " ? 0.42 : (proporcao[ch] ?? 0.66))
+  );
+  const entreletra = tamanho * 0.045;
+  const larguraTotal =
+    avancos.reduce((total, largura) => total + largura, 0) +
+    entreletra * Math.max(0, letras.length - 1);
+  let cursor = -larguraTotal / 2;
   const itens = letras
     .map((ch, i) => {
+      const largura = avancos[i];
+      const centro = cursor + largura / 2;
+      cursor += largura + (i < letras.length - 1 ? entreletra : 0);
       if (ch === " ") return "";
-      const graus = ((i - centro) * passo * 180) / Math.PI;
+      const graus = (centro / raio) * (180 / Math.PI);
       return `<text x="${cx}" y="${cy - raio}" transform="rotate(${graus.toFixed(2)} ${cx} ${cy})">${esc(ch)}</text>`;
     })
     .join("");
@@ -62,14 +77,7 @@ export function gerarCarimboSvg(op = {}) {
   // Selo circular
   const cx = 146;
   const cy = 180;
-  const textoSelo = textoEmCirculo(
-    "SELO OFICIAL DA INUTILIDADE",
-    "SELO OFICIAL DA INUTILIDADE",
-    cx,
-    cy,
-    76,
-    15
-  );
+  const textoSelo = textoEmCirculo("SELO OFICIAL DA INUTILIDADE", cx, cy, 70, 12);
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" role="img" aria-label="Selo Oficial da Inutilidade">
   <g transform="translate(0 20) rotate(-6 320 180)" fill="${cor}" stroke="${cor}" opacity="0.88" font-family="${FONTE}">
@@ -80,10 +88,10 @@ export function gerarCarimboSvg(op = {}) {
 
     <!-- selo -->
     <g>
-      <circle cx="${cx}" cy="${cy}" r="102" fill="none" stroke-width="6" />
-      <circle cx="${cx}" cy="${cy}" r="60" fill="none" stroke-width="2" />
+      <circle cx="${cx}" cy="${cy}" r="88" fill="none" stroke-width="5" />
+      <circle cx="${cx}" cy="${cy}" r="52" fill="none" stroke-width="2" />
       ${textoSelo}
-      <text x="${cx}" y="${cy + 27}" font-size="80" font-weight="700" text-anchor="middle" stroke="none">§</text>
+      <text x="${cx}" y="${cy + 23}" font-size="68" font-weight="700" text-anchor="middle" stroke="none">§</text>
     </g>
 
     <!-- texto principal -->

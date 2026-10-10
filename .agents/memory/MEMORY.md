@@ -1,3 +1,3 @@
 - [Layout direction](cartorio-layout.md) — Keep the original page as one centered column, with the cartório logo left-aligned in the header.
 - [API dependency install](api-dependency-install.md) — Resolve blocked transitive packages through a patched upstream release; keep maturity safeguards and verify the API health endpoint.
-- [Cartório progress, errors & seal](cartorio-progress-errors-seal.md) — Keep progress concise, operational errors generic, and the stamp wording exactly “SELO OFICIAL DA INUTILIDADE”.
+- [Cartório progress, errors & seal](cartorio-progress-errors-seal.md) — Keep progress concise, operational errors generic, and the exact seal copy readable on a balanced upper arc.
