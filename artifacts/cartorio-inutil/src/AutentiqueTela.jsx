@@ -118,15 +118,41 @@ const servicos = [
 const TIPOS_IMAGEM = ["image/jpeg", "image/png", "image/webp"];
 const TAMANHO_MAXIMO = 15 * 1024 * 1024; // mesmo limite do servidor
 
+const formatoDoArquivo = (file) => {
+  if (file.type === "application/pdf" || /\.pdf$/i.test(file.name)) return "PDF";
+  if (file.type === "image/jpeg") return "JPEG";
+  if (file.type === "image/png") return "PNG";
+  if (file.type === "image/webp") return "WEBP";
+  return file.name.split(".").pop()?.toUpperCase() || "Arquivo";
+};
+
+const tamanhoDoArquivo = (bytes) => {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
   const inputRef = useRef(null);
   const [drag, setDrag] = useState(false);
   const [arquivo, setArquivo] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [imagemPreviewFalhou, setImagemPreviewFalhou] = useState(false);
   const [processando, setProcessando] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [erro, setErro] = useState(null);
   const [avisoCompartilhamento, setAvisoCompartilhamento] = useState("");
   const carimbar = useCarimbarArquivo();
+
+  useEffect(() => {
+    if (!arquivo || !TIPOS_IMAGEM.includes(arquivo.type)) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(arquivo);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [arquivo]);
 
   // libera a URL temporária do resultado anterior
   useEffect(() => {
@@ -135,32 +161,47 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
     };
   }, [resultado]);
 
-  const handleFile = async (file) => {
+  const selecionarArquivo = (file) => {
     if (!file) return;
     setErro(null);
-    setResultado(null);
-    setAvisoCompartilhamento("");
 
     const ehPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
     const ehImagem = TIPOS_IMAGEM.includes(file.type);
     if (!ehPdf && !ehImagem) {
-      setArquivo(null);
       setErro("Formato não suportado. Envie uma imagem (JPG, PNG ou WEBP) ou um PDF.");
       return;
     }
     if (file.size > TAMANHO_MAXIMO) {
-      setArquivo(null);
       setErro("Arquivo grande demais (máximo de 15 MB).");
       return;
     }
 
     setArquivo(file);
+    setImagemPreviewFalhou(false);
+    setResultado(null);
+    setAvisoCompartilhamento("");
     onSelectFile?.(file);
+  };
+
+  const removerArquivo = () => {
+    if (processando) return;
+    setArquivo(null);
+    setImagemPreviewFalhou(false);
+    setErro(null);
+    setResultado(null);
+    setAvisoCompartilhamento("");
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const autenticarArquivo = async () => {
+    if (!arquivo || processando || resultado) return;
+    setErro(null);
+    setAvisoCompartilhamento("");
     setProcessando(true);
     try {
-      const blob = await carimbar.mutateAsync({ data: { arquivo: file } });
+      const blob = await carimbar.mutateAsync({ data: { arquivo } });
       const ext = blob.type === "application/pdf" ? "pdf" : blob.type === "image/jpeg" ? "jpg" : "png";
-      const base = file.name.replace(/\.[^.]+$/, "");
+      const base = arquivo.name.replace(/\.[^.]+$/, "");
       setResultado({
         url: URL.createObjectURL(blob),
         nome: `${base}-carimbado.${ext}`,
@@ -219,6 +260,7 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
         .aut-main .aut-sub { margin-left: auto !important; margin-right: auto !important; }
         .aut-services { text-align: center; }
         .aut-services .aut-sub2 { margin-left: auto !important; margin-right: auto !important; }
+        .aut-file-preview { width: 84px !important; height: 84px !important; flex-basis: 84px !important; }
         .aut-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
         @media (max-width: 900px) {
           .aut-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -227,6 +269,9 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
           .aut-grid { grid-template-columns: 1fr; gap: 12px; }
           .aut-card { padding: 16px 14px !important; }
           .aut-h1 { font-size: 44px !important; }
+          .aut-file-card { padding: 12px !important; gap: 10px !important; }
+          .aut-file-preview { width: 68px !important; height: 68px !important; flex-basis: 68px !important; }
+          .aut-remove { padding: 8px 10px !important; font-size: 12px !important; }
         }
       `}</style>
 
@@ -269,33 +314,40 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
           onDrop={(e) => {
             e.preventDefault();
             setDrag(false);
-            handleFile(e.dataTransfer.files?.[0]);
+            if (!processando) selecionarArquivo(e.dataTransfer.files?.[0]);
           }}
-          onClick={() => inputRef.current?.click()}
+          onClick={() => {
+            if (!processando) inputRef.current?.click();
+          }}
         >
           <input
             ref={inputRef}
             type="file"
             hidden
+            disabled={processando}
             accept="image/jpeg,image/png,image/webp,application/pdf,.pdf"
             onChange={(e) => {
-              handleFile(e.target.files?.[0]);
+              selecionarArquivo(e.target.files?.[0]);
               e.target.value = "";
             }}
           />
           {icons.upload}
           <button
             className="aut-btn"
+            type="button"
+            disabled={processando}
             style={styles.btn}
             onClick={(e) => {
               e.stopPropagation();
-              inputRef.current?.click();
+              if (!processando) inputRef.current?.click();
             }}
           >
-            Selecionar arquivo
+            {arquivo ? "Trocar arquivo" : "Selecionar arquivo"}
           </button>
           <p style={styles.hint}>
-            {arquivo ? `Selecionado: ${arquivo.name}` : "Arraste e solte aqui ou clique para enviar."}
+            {arquivo
+              ? "Confira a prévia abaixo e autentique quando quiser."
+              : "Arraste e solte aqui ou clique para selecionar."}
           </p>
 
           <div style={styles.tipos}>
@@ -316,6 +368,67 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
             </div>
           </div>
         </div>
+
+        {arquivo && (
+          <div className="aut-file-card" style={styles.arquivoSelecionado} aria-label="Arquivo selecionado">
+            <div className="aut-file-preview" style={styles.arquivoPreview}>
+              {TIPOS_IMAGEM.includes(arquivo.type) ? (
+                previewUrl && !imagemPreviewFalhou ? (
+                  <img
+                    src={previewUrl}
+                    alt={`Prévia de ${arquivo.name}`}
+                    style={styles.imagemSelecionada}
+                    onError={() => setImagemPreviewFalhou(true)}
+                  />
+                ) : (
+                  <div style={styles.iconePreview} aria-label="Prévia da imagem indisponível">
+                    {icons.image}
+                  </div>
+                )
+              ) : (
+                <div style={styles.iconePreview} aria-label="Documento PDF">
+                  {icons.file}
+                </div>
+              )}
+            </div>
+            <div style={styles.detalhesArquivo}>
+              <div style={styles.nomeArquivo} title={arquivo.name}>{arquivo.name}</div>
+              <div style={styles.metadadosArquivo}>
+                {formatoDoArquivo(arquivo)} · {tamanhoDoArquivo(arquivo.size)}
+              </div>
+            </div>
+            <button
+              className="aut-remove"
+              type="button"
+              disabled={processando}
+              onClick={removerArquivo}
+              style={styles.removerArquivo}
+            >
+              Remover
+            </button>
+          </div>
+        )}
+
+        {arquivo && (
+          <button
+            className="aut-btn"
+            type="button"
+            disabled={processando || Boolean(resultado)}
+            onClick={autenticarArquivo}
+            style={{
+              ...styles.btn,
+              maxWidth: "none",
+              marginTop: 16,
+              padding: "17px 20px",
+            }}
+          >
+            {processando
+              ? "Autenticando arquivo…"
+              : resultado
+                ? "Documento autenticado"
+                : "Autenticar documento"}
+          </button>
+        )}
 
         {(processando || resultado || erro) && (
           <div style={styles.resultado}>
@@ -432,6 +545,58 @@ const styles = {
     cursor: "pointer",
   },
   hint: { fontSize: 15, color: C.muted, margin: "18px 0 28px", textAlign: "center" },
+  arquivoSelecionado: {
+    width: "100%",
+    marginTop: 18,
+    padding: 16,
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    border: `1px solid ${C.border}`,
+    borderRadius: 16,
+    background: C.card,
+    textAlign: "left",
+  },
+  arquivoPreview: {
+    width: 84,
+    height: 84,
+    flex: "0 0 84px",
+    overflow: "hidden",
+    borderRadius: 12,
+    background: C.circle,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  imagemSelecionada: { width: "100%", height: "100%", objectFit: "contain" },
+  iconePreview: {
+    width: 56,
+    height: 56,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  detalhesArquivo: { flex: "1 1 auto", minWidth: 0 },
+  nomeArquivo: {
+    color: C.title,
+    fontSize: 15,
+    fontWeight: 700,
+    lineHeight: 1.35,
+    overflowWrap: "anywhere",
+  },
+  metadadosArquivo: { marginTop: 6, color: C.muted, fontSize: 13, fontWeight: 500 },
+  removerArquivo: {
+    flexShrink: 0,
+    padding: "10px 13px",
+    border: `1px solid ${C.border}`,
+    borderRadius: 999,
+    background: "transparent",
+    color: C.title,
+    fontSize: 13,
+    fontWeight: 600,
+    fontFamily: "inherit",
+    cursor: "pointer",
+  },
   tipos: { display: "flex", alignItems: "center", justifyContent: "center", gap: 28, flexWrap: "wrap" },
   tipo: { display: "flex", alignItems: "center", gap: 12 },
   tipoT: { fontSize: 15, fontWeight: 600, color: C.title },
