@@ -10,11 +10,11 @@ const esc = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-// Texto em arco superior, letra a letra (sem <textPath>, que nem todo
-// renderizador de SVG suporta, como o librsvg usado pelo sharp). Os avanços
-// aproximam a largura real das maiúsculas para evitar que espaços entre palavras
-// fiquem exagerados ou que o início e o fim se encostem.
-function textoEmCirculo(texto, cx, cy, raio, tamanho) {
+// Texto em arco, letra a letra (sem <textPath>, que nem todo renderizador de SVG
+// suporta, como o librsvg usado pelo sharp). Avanços proporcionais mantêm o
+// espaçamento entre letras; os arcos superior e inferior ficam na mesma direção
+// de leitura, com os glifos da parte inferior sempre em pé.
+function textoEmArco(texto, cx, cy, raio, tamanho, posicao) {
   const letras = [...texto];
   const proporcao = {
     A: 0.68, B: 0.65, C: 0.70, D: 0.72, E: 0.58, F: 0.55, G: 0.75,
@@ -25,19 +25,32 @@ function textoEmCirculo(texto, cx, cy, raio, tamanho) {
   const avancos = letras.map((ch) =>
     tamanho * (ch === " " ? 0.42 : (proporcao[ch] ?? 0.66))
   );
-  const entreletra = tamanho * 0.045;
+  const intervalos = Math.max(0, letras.length - 1);
+  const entreletraBase = tamanho * 0.045;
+  const larguraBase =
+    avancos.reduce((total, largura) => total + largura, 0) +
+    entreletraBase * intervalos;
+  const larguraAlvo = raio * ((130 * Math.PI) / 180);
+  const entreletra =
+    entreletraBase +
+    Math.max(0, larguraAlvo - larguraBase) / Math.max(1, intervalos);
   const larguraTotal =
     avancos.reduce((total, largura) => total + largura, 0) +
-    entreletra * Math.max(0, letras.length - 1);
+    entreletra * intervalos;
   let cursor = -larguraTotal / 2;
   const itens = letras
     .map((ch, i) => {
       const largura = avancos[i];
-      const centro = cursor + largura / 2;
+      const deslocamento = cursor + largura / 2;
       cursor += largura + (i < letras.length - 1 ? entreletra : 0);
       if (ch === " ") return "";
-      const graus = (centro / raio) * (180 / Math.PI);
-      return `<text x="${cx}" y="${cy - raio}" transform="rotate(${graus.toFixed(2)} ${cx} ${cy})">${esc(ch)}</text>`;
+      const angulo = (deslocamento / raio) * (180 / Math.PI);
+      const inferior = posicao === "inferior";
+      const theta = inferior ? 180 - angulo : angulo;
+      const rotacao = inferior ? -angulo : angulo;
+      const x = cx + raio * Math.sin((theta * Math.PI) / 180);
+      const y = cy - raio * Math.cos((theta * Math.PI) / 180);
+      return `<text x="${x.toFixed(2)}" y="${y.toFixed(2)}" transform="rotate(${rotacao.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)})">${esc(ch)}</text>`;
     })
     .join("");
   return `<g font-size="${tamanho}" font-weight="700" text-anchor="middle" stroke="none">${itens}</g>`;
@@ -77,7 +90,8 @@ export function gerarCarimboSvg(op = {}) {
   // Selo circular
   const cx = 146;
   const cy = 180;
-  const textoSelo = textoEmCirculo("SELO OFICIAL DA INUTILIDADE", cx, cy, 70, 12);
+  const textoSuperior = textoEmArco("SELO OFICIAL", cx, cy, 70, 14, "superior");
+  const textoInferior = textoEmArco("DA INUTILIDADE", cx, cy, 70, 14, "inferior");
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" role="img" aria-label="Selo Oficial da Inutilidade">
   <g transform="translate(0 20) rotate(-6 320 180)" fill="${cor}" stroke="${cor}" opacity="0.88" font-family="${FONTE}">
@@ -90,7 +104,10 @@ export function gerarCarimboSvg(op = {}) {
     <g>
       <circle cx="${cx}" cy="${cy}" r="88" fill="none" stroke-width="5" />
       <circle cx="${cx}" cy="${cy}" r="52" fill="none" stroke-width="2" />
-      ${textoSelo}
+      ${textoSuperior}
+      ${textoInferior}
+      <circle cx="${cx - 70}" cy="${cy}" r="2.5" stroke="none" />
+      <circle cx="${cx + 70}" cy="${cy}" r="2.5" stroke="none" />
       <text x="${cx}" y="${cy + 23}" font-size="68" font-weight="700" text-anchor="middle" stroke="none">§</text>
     </g>
 
