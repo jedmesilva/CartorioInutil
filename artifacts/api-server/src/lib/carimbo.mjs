@@ -1,4 +1,4 @@
-// Gerador do carimbo "Cartório de Notas Inúteis" em SVG.
+// Gerador do carimbo "Selo Oficial da Inutilidade" em SVG.
 // Função pura, sem dependências: funciona no navegador e no servidor (ex.: sharp).
 
 const FONTE = "'Plus Jakarta Sans', 'Helvetica Neue', Arial, sans-serif";
@@ -63,15 +63,15 @@ export function gerarCarimboSvg(op = {}) {
   const cx = 146;
   const cy = 180;
   const textoSelo = textoEmCirculo(
-    "• 1° CARTÓRIO DE NOTAS INÚTEIS • DOU FÉ",
-    "CARTÓRIO DE NOTAS INÚTEIS",
+    "• SELO OFICIAL DA INUTILIDADE • DOU FÉ",
+    "SELO OFICIAL DA INUTILIDADE",
     cx,
     cy,
     76,
     15
   );
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" role="img" aria-label="Carimbo do Cartório de Notas Inúteis">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" role="img" aria-label="Selo Oficial da Inutilidade">
   <g transform="translate(0 20) rotate(-6 320 180)" fill="${cor}" stroke="${cor}" opacity="0.88" font-family="${FONTE}">
 
     <!-- moldura dupla -->

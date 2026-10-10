@@ -306,7 +306,7 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
       `}</style>
 
       <div style={styles.container}>
-        <header style={styles.logo} aria-label="1° Cartório de Notas Inúteis">
+        <header style={styles.logo} aria-label="SELO OFICIAL DA INUTILIDADE">
           <svg width="46" height="46" viewBox="0 0 64 64" aria-hidden="true">
             <path d={MARCA_SELO} fill={C.dark} stroke={C.dark} strokeWidth="1.2" strokeLinejoin="round" />
             <circle cx="32" cy="32" r="23.5" fill="none" stroke="#f4f4f0" strokeWidth="1.6" />
@@ -315,8 +315,8 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
             </text>
           </svg>
           <div style={styles.logoText}>
-            <span style={styles.logoSmall}>1° CARTÓRIO DE</span>
-            <span style={styles.logoBig}>Notas Inúteis</span>
+            <span style={styles.logoSmall}>SELO OFICIAL DA</span>
+            <span style={styles.logoBig}>INUTILIDADE</span>
           </div>
         </header>
 
