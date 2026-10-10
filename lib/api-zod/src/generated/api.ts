@@ -21,10 +21,25 @@ export const HealthCheckResponse = zod.object({
  * Aplica o selo humorístico do cartório a um arquivo enviado pelo usuário. O arquivo é processado temporariamente e não é armazenado.
  * @summary Carimba um PDF ou imagem
  */
+export const CarimbarArquivoHeader = zod.object({
+  "X-Progress-ID": zod.string().uuid().optional().describe('Identificador usado para acompanhar as atualizações do processamento por SSE.')
+})
+
 export const CarimbarArquivoBody = zod.object({
   "arquivo": zod.instanceof(Blob)
 })
 
 export const CarimbarArquivoResponse = zod.unknown()
+
+
+/**
+ * Mantém uma conexão SSE aberta e envia atualizações do processamento em JSON.
+ * @summary Acompanha o processamento do carimbo
+ */
+export const AcompanharProgressoCarimboParams = zod.object({
+  "progressId": zod.coerce.string().uuid()
+})
+
+export const AcompanharProgressoCarimboResponse = zod.unknown()
 
 

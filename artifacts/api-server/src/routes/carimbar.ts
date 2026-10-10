@@ -8,6 +8,11 @@ import {
   TIPOS_IMAGEM,
   TIPO_PDF,
 } from "../lib/carimbar.mjs";
+import {
+  enviarProgressoCarimbo,
+  idProgressoValido,
+  inscreverProgressoCarimbo,
+} from "../lib/carimbo-progresso";
 
 const router: IRouter = Router();
 const LIMITE_ARQUIVO = 15 * 1024 * 1024;
@@ -26,7 +31,23 @@ const responderErro = (
   res.status(status).json(erro);
 };
 
+router.get("/carimbar/progresso/:progressId", (req, res): void => {
+  const rawId = req.params.progressId;
+  const progressId = Array.isArray(rawId) ? rawId[0] : rawId;
+  if (!idProgressoValido(progressId)) {
+    responderErro(res, 400, "Identificador de progresso inválido.");
+    return;
+  }
+  inscreverProgressoCarimbo(progressId, res);
+});
+
 const uploadArquivo: RequestHandler = (req, res, next) => {
+  const progressId = req.get("X-Progress-ID");
+  if (progressId && !idProgressoValido(progressId)) {
+    responderErro(res, 400, "Identificador de progresso inválido.");
+    return;
+  }
+
   upload.single("arquivo")(req, res, (error?: unknown) => {
     if (!error) {
       next();
@@ -44,6 +65,12 @@ const uploadArquivo: RequestHandler = (req, res, next) => {
 };
 
 router.post("/carimbar", uploadArquivo, async (req, res): Promise<void> => {
+  const progressId = req.get("X-Progress-ID");
+  if (progressId && !idProgressoValido(progressId)) {
+    responderErro(res, 400, "Identificador de progresso inválido.");
+    return;
+  }
+
   const arquivo = req.file;
   if (!arquivo) {
     responderErro(res, 400, "Nenhum arquivo enviado.");
@@ -79,9 +106,23 @@ router.post("/carimbar", uploadArquivo, async (req, res): Promise<void> => {
   }
 
   try {
+    const onProgress = progressId
+      ? ({ mensagem, paginaAtual, totalPaginas }: {
+          mensagem: string;
+          paginaAtual?: number;
+          totalPaginas?: number;
+        }) => {
+          enviarProgressoCarimbo(progressId, {
+            fase: "processando",
+            mensagem,
+            paginaAtual,
+            totalPaginas,
+          });
+        }
+      : undefined;
     const resultado = ehPdf
-      ? await carimbarPdf(arquivo.buffer)
-      : await carimbarImagem(arquivo.buffer, tipoImagem!);
+      ? await carimbarPdf(arquivo.buffer, onProgress)
+      : await carimbarImagem(arquivo.buffer, tipoImagem!, onProgress);
     const base = arquivo.originalname
       .split(/[\\/]/)
       .pop()
@@ -97,14 +138,32 @@ router.post("/carimbar", uploadArquivo, async (req, res): Promise<void> => {
       `attachment; filename="${nomeFallback}"; filename*=UTF-8''${encodeURIComponent(nome)}`,
     );
     res.setHeader("Cache-Control", "no-store");
+    if (progressId) {
+      enviarProgressoCarimbo(progressId, {
+        fase: "concluido",
+        mensagem: "Arquivo pronto.",
+      });
+    }
     res.status(200).send(resultado.buffer);
   } catch (error) {
     if (error instanceof ErroDeArquivo) {
+      if (progressId) {
+        enviarProgressoCarimbo(progressId, {
+          fase: "erro",
+          mensagem: error.message,
+        });
+      }
       responderErro(res, error.status, error.message);
       return;
     }
 
     req.log.error({ err: error }, "Erro ao carimbar arquivo");
+    if (progressId) {
+      enviarProgressoCarimbo(progressId, {
+        fase: "erro",
+        mensagem: "Não foi possível carimbar este arquivo.",
+      });
+    }
     responderErro(res, 500, "Não foi possível carimbar este arquivo.");
   }
 });

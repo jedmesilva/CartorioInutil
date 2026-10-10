@@ -13,6 +13,24 @@ export interface CarimboErro {
   erro: string;
 }
 
+export type CarimboProgressoEventoFase = typeof CarimboProgressoEventoFase[keyof typeof CarimboProgressoEventoFase];
+
+
+export const CarimboProgressoEventoFase = {
+  processando: 'processando',
+  concluido: 'concluido',
+  erro: 'erro',
+} as const;
+
+export interface CarimboProgressoEvento {
+  fase: CarimboProgressoEventoFase;
+  mensagem: string;
+  /** @minimum 1 */
+  paginaAtual?: number;
+  /** @minimum 1 */
+  totalPaginas?: number;
+}
+
 export interface HealthStatus {
   status: string;
 }

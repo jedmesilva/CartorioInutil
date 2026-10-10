@@ -12,5 +12,20 @@ export interface ResultadoCarimbo {
   extensao: string;
 }
 
-export function carimbarImagem(buffer: Buffer, tipo: string): Promise<ResultadoCarimbo>;
-export function carimbarPdf(buffer: Buffer): Promise<ResultadoCarimbo>;
+export interface ProgressoCarimbo {
+  mensagem: string;
+  paginaAtual?: number;
+  totalPaginas?: number;
+}
+
+export type CallbackProgressoCarimbo = (progresso: ProgressoCarimbo) => void;
+
+export function carimbarImagem(
+  buffer: Buffer,
+  tipo: string,
+  onProgress?: CallbackProgressoCarimbo,
+): Promise<ResultadoCarimbo>;
+export function carimbarPdf(
+  buffer: Buffer,
+  onProgress?: CallbackProgressoCarimbo,
+): Promise<ResultadoCarimbo>;

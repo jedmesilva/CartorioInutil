@@ -207,3 +207,81 @@ export const useCarimbarArquivo = <TError = ErrorType<CarimboErro>,
       return useMutation(getCarimbarArquivoMutationOptions(options));
     }
 
+export const getAcompanharProgressoCarimboUrl = (progressId: string,) => {
+
+
+
+
+  return `/api/carimbar/progresso/${progressId}`
+}
+
+/**
+ * Mantém uma conexão SSE aberta e envia atualizações do processamento em JSON.
+ * @summary Acompanha o processamento do carimbo
+ */
+export const acompanharProgressoCarimbo = async (progressId: string, options?: Parameters<typeof customFetch>[1]): Promise<string> => {
+
+  return customFetch<string>(getAcompanharProgressoCarimboUrl(progressId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAcompanharProgressoCarimboQueryKey = (progressId: string,) => {
+    return [
+    `/api/carimbar/progresso/${progressId}`
+    ] as const;
+    }
+
+
+export const getAcompanharProgressoCarimboQueryOptions = <TData = Awaited<ReturnType<typeof acompanharProgressoCarimbo>>, TError = ErrorType<CarimboErro>>(progressId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof acompanharProgressoCarimbo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAcompanharProgressoCarimboQueryKey(progressId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof acompanharProgressoCarimbo>>> = ({ signal }) => acompanharProgressoCarimbo(progressId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: progressId !== null && progressId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof acompanharProgressoCarimbo>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AcompanharProgressoCarimboQueryResult = NonNullable<Awaited<ReturnType<typeof acompanharProgressoCarimbo>>>
+export type AcompanharProgressoCarimboQueryError = ErrorType<CarimboErro>
+
+
+/**
+ * @summary Acompanha o processamento do carimbo
+ */
+
+export function useAcompanharProgressoCarimbo<TData = Awaited<ReturnType<typeof acompanharProgressoCarimbo>>, TError = ErrorType<CarimboErro>>(
+ progressId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof acompanharProgressoCarimbo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAcompanharProgressoCarimboQueryOptions(progressId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+

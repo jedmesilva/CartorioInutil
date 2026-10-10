@@ -1,1 +1,2 @@
 - [Layout direction](cartorio-layout.md) — Keep the original page as one centered column, with the cartório logo left-aligned in the header.
+- [API dependency install](api-dependency-install.md) — The API server's pnpm install hit a Replit package-firewall 403 for transitive `proxy-addr`; verify runtime dependencies before claiming end-to-end checks.

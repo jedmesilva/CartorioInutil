@@ -27,7 +27,8 @@ async function carimboPng(svg, largura) {
 }
 
 /** Carimba uma imagem (JPEG, PNG ou WEBP). Devolve { buffer, tipo, extensao }. */
-export async function carimbarImagem(buffer, tipo) {
+export async function carimbarImagem(buffer, tipo, onProgress = () => {}) {
+  onProgress({ mensagem: "Lendo e preparando a imagem..." });
   let base;
   try {
     // rotate() aplica a orientação EXIF antes de medir a imagem
@@ -38,6 +39,7 @@ export async function carimbarImagem(buffer, tipo) {
   const { width: W, height: H } = base.info;
 
   // O carimbo ocupa até 45% da largura e 50% da altura, no canto inferior direito.
+  onProgress({ mensagem: "Preparando o selo..." });
   let largura = W * 0.45;
   if ((largura * 400) / SVG_LARGURA > H * 0.5) largura = (H * 0.5 * SVG_LARGURA) / 400;
   const stamp = await carimboPng(gerarCarimboSvg(), largura);
@@ -52,6 +54,7 @@ export async function carimbarImagem(buffer, tipo) {
     },
   ]);
 
+  onProgress({ mensagem: "Aplicando o selo e gerando a imagem final..." });
   if (tipo === "image/jpeg") {
     return { buffer: await img.jpeg({ quality: 92 }).toBuffer(), tipo: "image/jpeg", extensao: "jpg" };
   }
@@ -59,7 +62,8 @@ export async function carimbarImagem(buffer, tipo) {
 }
 
 /** Carimba todas as páginas de um PDF. Devolve { buffer, tipo, extensao }. */
-export async function carimbarPdf(buffer) {
+export async function carimbarPdf(buffer, onProgress = () => {}) {
+  onProgress({ mensagem: "Abrindo o PDF..." });
   let pdf;
   try {
     pdf = await PDFDocument.load(buffer);
@@ -67,17 +71,25 @@ export async function carimbarPdf(buffer) {
     throw new ErroDeArquivo("Não foi possível ler este PDF. Ele pode estar protegido por senha ou corrompido.");
   }
 
+  onProgress({ mensagem: "Preparando o selo..." });
   const svg = gerarCarimboSvg(); // mesmo protocolo em todas as páginas
   const png = await pdf.embedPng(await carimboPng(svg, 1200));
 
-  for (const page of pdf.getPages()) {
+  const pages = pdf.getPages();
+  for (const [index, page] of pages.entries()) {
     const { width, height } = page.getSize();
     const w = Math.min(width * 0.38, height * 0.4 * (png.width / png.height));
     const h = (w * png.height) / png.width;
     const margem = width * 0.03;
     page.drawImage(png, { x: width - w - margem, y: margem, width: w, height: h });
+    onProgress({
+      mensagem: `Carimbando página ${index + 1} de ${pages.length}...`,
+      paginaAtual: index + 1,
+      totalPaginas: pages.length,
+    });
   }
 
+  onProgress({ mensagem: "Salvando o PDF final..." });
   const out = await pdf.save();
   return { buffer: Buffer.from(out), tipo: TIPO_PDF, extensao: "pdf" };
 }

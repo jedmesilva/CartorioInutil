@@ -32,6 +32,14 @@ paths:
       tags: [cartorio]
       summary: Carimba um PDF ou imagem
       description: Aplica o selo humorístico do cartório a um arquivo enviado pelo usuário. O arquivo é processado temporariamente e não é armazenado.
+      parameters:
+        - in: header
+          name: X-Progress-ID
+          required: false
+          description: Identificador usado para acompanhar as atualizações do processamento por SSE.
+          schema:
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
@@ -83,6 +91,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CarimboErro"
+  /carimbar/progresso/{progressId}:
+    get:
+      operationId: acompanharProgressoCarimbo
+      tags: [cartorio]
+      summary: Acompanha o processamento do carimbo
+      description: Mantém uma conexão SSE aberta e envia atualizações do processamento em JSON.
+      parameters:
+        - in: path
+          name: progressId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Fluxo de eventos; cada evento contém um objeto CarimboProgressoEvento.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "400":
+          description: Identificador de progresso inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CarimboErro"
 components:
   schemas:
     CarimboArquivoInput:
@@ -100,6 +134,23 @@ components:
           type: string
       required:
         - erro
+    CarimboProgressoEvento:
+      type: object
+      properties:
+        fase:
+          type: string
+          enum: [processando, concluido, erro]
+        mensagem:
+          type: string
+        paginaAtual:
+          type: integer
+          minimum: 1
+        totalPaginas:
+          type: integer
+          minimum: 1
+      required:
+        - fase
+        - mensagem
     HealthStatus:
       type: object
       properties:

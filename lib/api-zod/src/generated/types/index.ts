@@ -8,4 +8,6 @@
 
 export * from './carimboArquivoInput';
 export * from './carimboErro';
+export * from './carimboProgressoEvento';
+export * from './carimboProgressoEventoFase';
 export * from './healthStatus';

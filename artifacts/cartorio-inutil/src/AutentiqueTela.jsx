@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { useCarimbarArquivo } from "@workspace/api-client-react";
+import { carimbarComProgresso } from "./api/carimbarComProgresso";
 
 const C = {
   bg: "#f4f4f0",
@@ -142,7 +142,12 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
   const [resultado, setResultado] = useState(null);
   const [erro, setErro] = useState(null);
   const [avisoCompartilhamento, setAvisoCompartilhamento] = useState("");
-  const carimbar = useCarimbarArquivo();
+  const [progressoAutenticacao, setProgressoAutenticacao] = useState(
+    /** @type {import("./api/carimbarComProgresso").ProgressoAutenticacao} */ ({
+      fase: "conectando",
+      mensagem: "Preparando o envio...",
+    }),
+  );
 
   useEffect(() => {
     if (!arquivo || !TIPOS_IMAGEM.includes(arquivo.type)) {
@@ -200,8 +205,12 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
     setAvisoCompartilhamento("");
     setProcessando(true);
     setTela("progresso");
+    setProgressoAutenticacao({
+      fase: "conectando",
+      mensagem: "Conectando ao acompanhamento do processamento...",
+    });
     try {
-      const blob = await carimbar.mutateAsync({ data: { arquivo } });
+      const blob = await carimbarComProgresso(arquivo, setProgressoAutenticacao);
       const ext = blob.type === "application/pdf" ? "pdf" : blob.type === "image/jpeg" ? "jpg" : "png";
       const base = arquivo.name.replace(/\.[^.]+$/, "");
       setResultado({
@@ -324,20 +333,63 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
           <section className="aut-feedback-screen" aria-labelledby="aut-feedback-title">
             <div className="aut-feedback-card" role="status" aria-live="polite">
               <div className="aut-spinner" aria-hidden="true" />
-              <p style={styles.feedbackLabel}>AUTENTICAÇÃO EM ANDAMENTO</p>
-              <h1 id="aut-feedback-title" style={styles.feedbackTitle}>Aplicando o carimbo</h1>
+              <p style={styles.feedbackLabel}>
+                {progressoAutenticacao.fase === "conectando" ||
+                progressoAutenticacao.fase === "envio"
+                  ? "ENVIO DO ARQUIVO"
+                  : "AUTENTICAÇÃO EM ANDAMENTO"}
+              </p>
+              <h1 id="aut-feedback-title" style={styles.feedbackTitle}>
+                {progressoAutenticacao.fase === "conectando"
+                  ? "Preparando o envio"
+                  : progressoAutenticacao.fase === "envio"
+                    ? "Enviando seu arquivo"
+                    : "Aplicando o carimbo"}
+              </h1>
               <p style={styles.feedbackDescription}>
-                Enviando e autenticando <strong>{arquivo?.name}</strong>.
+                <strong>{arquivo?.name}</strong>
+                <br />
+                {progressoAutenticacao.mensagem}
               </p>
               <div
                 className="aut-progress-track"
                 role="progressbar"
-                aria-label="Autenticação em andamento"
+                aria-label={
+                  progressoAutenticacao.fase === "envio"
+                    ? "Envio do arquivo"
+                    : "Processamento do arquivo"
+                }
+                aria-valuemin={progressoAutenticacao.fase === "envio" ? 0 : undefined}
+                aria-valuemax={progressoAutenticacao.fase === "envio" ? 100 : undefined}
+                aria-valuenow={
+                  progressoAutenticacao.fase === "envio"
+                    ? progressoAutenticacao.percentual
+                    : undefined
+                }
+                aria-valuetext={
+                  progressoAutenticacao.fase === "envio"
+                    ? `Enviado ${progressoAutenticacao.percentual}%`
+                    : progressoAutenticacao.mensagem
+                }
               >
-                <div className="aut-progress-indicator" />
+                <div
+                  className="aut-progress-indicator"
+                  style={
+                    progressoAutenticacao.fase === "envio"
+                      ? {
+                          width: `${progressoAutenticacao.percentual}%`,
+                          animation: "none",
+                          transform: "none",
+                          transition: "width .15s ease",
+                        }
+                      : undefined
+                  }
+                />
               </div>
               <p style={styles.feedbackHint}>
-                Aguarde enquanto preparamos seu arquivo. O tempo pode variar conforme o documento.
+                {progressoAutenticacao.fase === "envio"
+                  ? "Depois do envio, você verá as etapas reais do processamento."
+                  : "Aguarde enquanto o servidor prepara seu arquivo."}
               </p>
             </div>
           </section>
