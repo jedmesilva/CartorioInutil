@@ -174,11 +174,11 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
     const ehPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
     const ehImagem = TIPOS_IMAGEM.includes(file.type);
     if (!ehPdf && !ehImagem) {
-      setErro("Formato não suportado. Envie uma imagem (JPG, PNG ou WEBP) ou um PDF.");
+      setErro("Formato não aceito. Envie PDF, JPG, PNG ou WEBP.");
       return;
     }
     if (file.size > TAMANHO_MAXIMO) {
-      setErro("Arquivo grande demais (máximo de 15 MB).");
+      setErro("O arquivo deve ter até 15 MB.");
       return;
     }
 
@@ -207,7 +207,7 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
     setTela("progresso");
     setProgressoAutenticacao({
       fase: "conectando",
-      mensagem: "Conectando ao acompanhamento do processamento...",
+      mensagem: "Preparando o envio...",
     });
     try {
       const blob = await carimbarComProgresso(arquivo, setProgressoAutenticacao);
@@ -220,10 +220,8 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
         blob,
       });
       setTela("resultado");
-    } catch (e) {
-      console.error(e);
-      const mensagemApi = e?.data?.erro;
-      setErro(mensagemApi || e.message || "Não foi possível carimbar este arquivo.");
+    } catch {
+      setErro("Não foi possível autenticar o documento. Tente novamente.");
       setTela("selecao");
     } finally {
       setProcessando(false);
@@ -252,7 +250,7 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
       (navigator.canShare && !navigator.canShare({ files: [arquivoCompartilhado] }))
     ) {
       setAvisoCompartilhamento(
-        "Este navegador não compartilha arquivos diretamente. Baixe o documento e envie pelo aplicativo que preferir."
+        "Compartilhamento indisponível. Baixe o arquivo para enviar."
       );
       return;
     }
@@ -265,7 +263,7 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
       setAvisoCompartilhamento("Documento compartilhado. A validade jurídica continua exatamente a mesma: nenhuma.");
     } catch (e) {
       if (e?.name !== "AbortError") {
-        setAvisoCompartilhamento("Não foi possível compartilhar agora. Você ainda pode baixar o arquivo carimbado.");
+        setAvisoCompartilhamento("Não foi possível compartilhar. Baixe o arquivo para enviar.");
       }
     }
   };
@@ -285,9 +283,14 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
         .aut-services .aut-sub2 { margin-left: auto !important; margin-right: auto !important; }
         .aut-file-preview { width: 84px !important; height: 84px !important; flex-basis: 84px !important; }
         .aut-feedback-screen, .aut-result-screen { width: 100%; max-width: 760px; margin: 54px auto 72px; text-align: center; }
-        .aut-feedback-card { padding: 40px 32px; background: ${C.card}; border: 1px solid ${C.border}; border-radius: 22px; }
-        .aut-spinner { width: 54px; height: 54px; margin: 0 auto 24px; border: 4px solid #dce4dc; border-top-color: ${C.dark}; border-radius: 50%; animation: aut-spin .9s linear infinite; }
-        .aut-progress-track { height: 8px; margin: 28px 0 18px; overflow: hidden; background: #e4e8e2; border-radius: 999px; }
+        .aut-feedback-card { max-width: 520px; margin: 0 auto; padding: 26px 28px; background: ${C.card}; border: 1px solid ${C.border}; border-radius: 18px; }
+        .aut-processing-status { text-align: center; }
+        .aut-spinner { width: 34px; height: 34px; margin: 0 auto 14px; border: 3px solid #dce4dc; border-top-color: ${C.dark}; border-radius: 50%; animation: aut-spin .9s linear infinite; }
+        .aut-progress-title { margin: 0; color: ${C.title}; font-size: 20px; line-height: 1.3; font-weight: 700; }
+        .aut-progress-message { margin: 8px 0 0; color: ${C.muted}; font-size: 14px; line-height: 1.4; }
+        .aut-upload-status { display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .aut-progress-percent { color: ${C.dark}; font-size: 14px; font-weight: 700; }
+        .aut-progress-track { height: 6px; margin: 14px 0 0; overflow: hidden; background: #e4e8e2; border-radius: 999px; }
         .aut-progress-indicator { width: 36%; height: 100%; background: ${C.dark}; border-radius: inherit; animation: aut-progress 1.5s ease-in-out infinite; }
         .aut-result-preview { width: 100%; margin-top: 24px; overflow: hidden; background: #fff; border: 1px solid ${C.border}; border-radius: 16px; }
         .aut-result-preview iframe { display: block; width: 100%; height: 600px; border: 0; background: #fff; }
@@ -307,7 +310,7 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
           .aut-file-preview { width: 68px !important; height: 68px !important; flex-basis: 68px !important; }
           .aut-remove { padding: 8px 10px !important; font-size: 12px !important; }
           .aut-feedback-screen, .aut-result-screen { margin-top: 30px; }
-          .aut-feedback-card { padding: 30px 18px; }
+          .aut-feedback-card { padding: 22px 18px; }
           .aut-result-preview iframe { height: 480px; }
           .aut-result-actions { flex-direction: column; }
           .aut-result-actions > * { width: 100%; min-width: 0; }
@@ -331,66 +334,57 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
 
         {tela === "progresso" ? (
           <section className="aut-feedback-screen" aria-labelledby="aut-feedback-title">
-            <div className="aut-feedback-card" role="status" aria-live="polite">
-              <div className="aut-spinner" aria-hidden="true" />
-              <p style={styles.feedbackLabel}>
-                {progressoAutenticacao.fase === "conectando" ||
-                progressoAutenticacao.fase === "envio"
-                  ? "ENVIO DO ARQUIVO"
-                  : "AUTENTICAÇÃO EM ANDAMENTO"}
-              </p>
-              <h1 id="aut-feedback-title" style={styles.feedbackTitle}>
-                {progressoAutenticacao.fase === "conectando"
-                  ? "Preparando o envio"
-                  : progressoAutenticacao.fase === "envio"
-                    ? "Enviando seu arquivo"
-                    : "Aplicando o carimbo"}
-              </h1>
-              <p style={styles.feedbackDescription}>
-                <strong>{arquivo?.name}</strong>
-                <br />
-                {progressoAutenticacao.mensagem}
-              </p>
-              <div
-                className="aut-progress-track"
-                role="progressbar"
-                aria-label={
-                  progressoAutenticacao.fase === "envio"
-                    ? "Envio do arquivo"
-                    : "Processamento do arquivo"
-                }
-                aria-valuemin={progressoAutenticacao.fase === "envio" ? 0 : undefined}
-                aria-valuemax={progressoAutenticacao.fase === "envio" ? 100 : undefined}
-                aria-valuenow={
-                  progressoAutenticacao.fase === "envio"
-                    ? progressoAutenticacao.percentual
-                    : undefined
-                }
-                aria-valuetext={
-                  progressoAutenticacao.fase === "envio"
-                    ? `Enviado ${progressoAutenticacao.percentual}%`
-                    : progressoAutenticacao.mensagem
-                }
-              >
+            <div className="aut-feedback-card">
+              {progressoAutenticacao.fase === "envio" ? (
+                <>
+                  <div className="aut-upload-status">
+                    <h1 id="aut-feedback-title" className="aut-progress-title">
+                      Enviando arquivo
+                    </h1>
+                    <span className="aut-progress-percent" aria-hidden="true">
+                      {progressoAutenticacao.percentual}%
+                    </span>
+                  </div>
+                  <div
+                    className="aut-progress-track"
+                    role="progressbar"
+                    aria-label="Envio do arquivo"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={progressoAutenticacao.percentual}
+                    aria-valuetext={`Enviado ${progressoAutenticacao.percentual}%`}
+                  >
+                    <div
+                      className="aut-progress-indicator"
+                      style={{
+                        width: `${progressoAutenticacao.percentual}%`,
+                        animation: "none",
+                        transform: "none",
+                        transition: "width .15s ease",
+                      }}
+                    />
+                  </div>
+                </>
+              ) : (
                 <div
-                  className="aut-progress-indicator"
-                  style={
-                    progressoAutenticacao.fase === "envio"
-                      ? {
-                          width: `${progressoAutenticacao.percentual}%`,
-                          animation: "none",
-                          transform: "none",
-                          transition: "width .15s ease",
-                        }
-                      : undefined
-                  }
-                />
-              </div>
-              <p style={styles.feedbackHint}>
-                {progressoAutenticacao.fase === "envio"
-                  ? "Depois do envio, você verá as etapas reais do processamento."
-                  : "Aguarde enquanto o servidor prepara seu arquivo."}
-              </p>
+                  className="aut-processing-status"
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  <div className="aut-spinner" aria-hidden="true" />
+                  <h1 id="aut-feedback-title" className="aut-progress-title">
+                    {progressoAutenticacao.fase === "conectando"
+                      ? "Preparando envio"
+                      : "Autenticando documento"}
+                  </h1>
+                  {progressoAutenticacao.fase === "processamento" && (
+                    <p className="aut-progress-message">
+                      {progressoAutenticacao.mensagem}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </section>
         ) : tela === "resultado" && resultado ? (
@@ -608,7 +602,7 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
         {(processando || resultado || erro) && (
           <div style={styles.resultado}>
             {processando && <p style={styles.resTxt}>Carimbando seu arquivo…</p>}
-            {erro && <p style={{ ...styles.resTxt, color: "#9a3b2e" }}>{erro}</p>}
+            {erro && <p role="alert" style={{ ...styles.resTxt, color: "#9a3b2e" }}>{erro}</p>}
             {resultado && (
               <>
                 {resultado.imagem && (
@@ -792,13 +786,6 @@ const styles = {
   },
   resImg: { maxWidth: "100%", maxHeight: 320, borderRadius: 10, objectFit: "contain" },
   resTxt: { margin: 0, fontSize: 15, color: C.muted, textAlign: "center" },
-  feedbackLabel: {
-    margin: "0 0 12px",
-    color: C.dark,
-    fontSize: 12,
-    fontWeight: 700,
-    letterSpacing: "0.22em",
-  },
   feedbackTitle: {
     margin: 0,
     color: C.title,
@@ -815,7 +802,6 @@ const styles = {
     lineHeight: 1.5,
     overflowWrap: "anywhere",
   },
-  feedbackHint: { margin: 0, color: C.muted, fontSize: 14, lineHeight: 1.45 },
   successLabel: {
     display: "flex",
     alignItems: "center",

@@ -63,7 +63,7 @@ export function gerarCarimboSvg(op = {}) {
   const cx = 146;
   const cy = 180;
   const textoSelo = textoEmCirculo(
-    "• SELO OFICIAL DA INUTILIDADE • DOU FÉ",
+    "SELO OFICIAL DA INUTILIDADE",
     "SELO OFICIAL DA INUTILIDADE",
     cx,
     cy,

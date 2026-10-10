@@ -21,21 +21,8 @@ export type ProgressoAutenticacao =
 
 type CallbackProgresso = (progresso: ProgressoAutenticacao) => void;
 
-async function erroDaResposta(xhr: XMLHttpRequest): Promise<Error> {
-  const resposta = xhr.response as Blob | null;
-  const mensagemPadrao = "Não foi possível carimbar este arquivo.";
-  if (!resposta) return new Error(mensagemPadrao);
-
-  try {
-    const texto = await resposta.text();
-    const payload = JSON.parse(texto) as { erro?: unknown };
-    return new Error(
-      typeof payload.erro === "string" ? payload.erro : mensagemPadrao,
-    );
-  } catch {
-    return new Error(mensagemPadrao);
-  }
-}
+const MENSAGEM_FALHA_AUTENTICACAO =
+  "Não foi possível autenticar o documento. Tente novamente.";
 
 export function carimbarComProgresso(
   arquivo: File,
@@ -68,11 +55,7 @@ export function carimbarComProgresso(
     };
 
     const tempoLimiteConexao = window.setTimeout(() => {
-      falhar(
-        new Error(
-          "Não foi possível conectar ao acompanhamento do processamento. Tente novamente.",
-        ),
-      );
+      falhar(new Error(MENSAGEM_FALHA_AUTENTICACAO));
     }, 15000);
 
     eventos.onmessage = (evento) => {
@@ -80,7 +63,7 @@ export function carimbarComProgresso(
       try {
         atualizacao = JSON.parse(evento.data) as CarimboProgressoEvento;
       } catch {
-        falhar(new Error("O servidor enviou uma atualização inválida."));
+        falhar(new Error(MENSAGEM_FALHA_AUTENTICACAO));
         return;
       }
 
@@ -96,7 +79,7 @@ export function carimbarComProgresso(
       } else if (atualizacao.fase === "concluido" || atualizacao.fase === "erro") {
         eventos.close();
       } else {
-        falhar(new Error("O servidor enviou uma etapa de processamento inválida."));
+        falhar(new Error(MENSAGEM_FALHA_AUTENTICACAO));
       }
     };
 
@@ -110,8 +93,7 @@ export function carimbarComProgresso(
         avisoConexaoMostrado = true;
         atualizarProgresso({
           fase: "processamento",
-          mensagem:
-            "A conexão das atualizações foi interrompida; aguardando o arquivo final...",
+          mensagem: "Aguardando o arquivo final...",
         });
       }
     };
@@ -150,7 +132,7 @@ export function carimbarComProgresso(
         if (processamentoRecebido) return;
         atualizarProgresso({
           fase: "processamento",
-          mensagem: "Arquivo enviado. Aguardando as etapas do servidor...",
+          mensagem: "Aguardando processamento...",
         });
       });
 
@@ -162,14 +144,14 @@ export function carimbarComProgresso(
           resolve(xhr.response as Blob);
           return;
         }
-        void erroDaResposta(xhr).then(falhar);
+        falhar(new Error(MENSAGEM_FALHA_AUTENTICACAO));
       });
 
       xhr.addEventListener("error", () => {
-        falhar(new Error("Falha de rede durante o envio do arquivo."));
+        falhar(new Error(MENSAGEM_FALHA_AUTENTICACAO));
       });
       xhr.addEventListener("abort", () => {
-        falhar(new Error("O envio do arquivo foi interrompido."));
+        falhar(new Error(MENSAGEM_FALHA_AUTENTICACAO));
       });
       xhr.send(dados);
     };
