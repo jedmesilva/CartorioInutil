@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "1º Cartório de Notas Inúteis"
+description = "Um cartório de brincadeira para carimbar PDFs e imagens com um selo oficial de inutilidade e permitir baixar ou compartilhar o arquivo resultante."
+version = "1.0.0"
+id = "artifacts/cartorio-inutil"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19941
+
+[services.development]
+run = "pnpm --filter @workspace/cartorio-inutil run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/cartorio-inutil", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/cartorio-inutil/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19941"
+BASE_PATH = "/"

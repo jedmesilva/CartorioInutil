@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: cartorio
+    description: Carimbos de documentos do cartório fictício
 paths:
   /healthz:
     get:
@@ -24,8 +26,80 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /carimbar:
+    post:
+      operationId: carimbarArquivo
+      tags: [cartorio]
+      summary: Carimba um PDF ou imagem
+      description: Aplica o selo humorístico do cartório a um arquivo enviado pelo usuário. O arquivo é processado temporariamente e não é armazenado.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CarimboArquivoInput"
+      responses:
+        "200":
+          description: Arquivo carimbado
+          headers:
+            Content-Disposition:
+              description: Nome sugerido para baixar o arquivo carimbado
+              schema:
+                type: string
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Arquivo ausente ou envio inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CarimboErro"
+        "413":
+          description: Arquivo maior que 15 MB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CarimboErro"
+        "415":
+          description: Formato não suportado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CarimboErro"
+        "422":
+          description: Arquivo protegido, corrompido ou impossível de processar
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CarimboErro"
 components:
   schemas:
+    CarimboArquivoInput:
+      type: object
+      properties:
+        arquivo:
+          type: string
+          format: binary
+      required:
+        - arquivo
+    CarimboErro:
+      type: object
+      properties:
+        erro:
+          type: string
+      required:
+        - erro
     HealthStatus:
       type: object
       properties:
