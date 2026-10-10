@@ -76,7 +76,6 @@ export function formatarDataHora(data = new Date()) {
  * @param {Date}   [op.data]       data/hora do carimbo
  * @param {string} [op.protocolo]  número de protocolo
  * @param {string} [op.frase]      texto sob "AUTENTICADO" (padrão: "100% inútil")
- * @param {string} [op.tabeliao]   nome do tabelião fictício
  * @param {string} [op.cor]        cor principal
  * @returns {string} SVG (fundo transparente, 640x400)
  */
@@ -84,7 +83,6 @@ export function gerarCarimboSvg(op = {}) {
   const data = op.data ?? new Date();
   const protocolo = op.protocolo ?? gerarProtocolo(data);
   const frase = op.frase ?? "100% inútil";
-  const tabeliao = op.tabeliao ?? "Sr. Nada Útil";
   const cor = op.cor ?? "#0b3d2e";
 
   // Selo circular
@@ -120,9 +118,8 @@ export function gerarCarimboSvg(op = {}) {
     <line x1="284" y1="156" x2="544" y2="156" stroke-width="1.5" />
 
     <g text-anchor="middle" stroke="none">
-      <text x="414" y="184" font-size="20" font-weight="800">${esc(formatarDataHora(data))}</text>
-      <text x="414" y="209" font-size="15" font-weight="700">Protocolo nº ${esc(protocolo)}</text>
-      <text x="414" y="232" font-size="14" font-weight="600">Tabelião: ${esc(tabeliao)}</text>
+      <text x="414" y="214" font-size="20" font-weight="800">${esc(formatarDataHora(data))}</text>
+      <text x="414" y="242" font-size="15" font-weight="700">Protocolo nº ${esc(protocolo)}</text>
     </g>
     </g>
   </g>
