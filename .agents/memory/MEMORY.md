@@ -1,3 +1,3 @@
 - [Layout direction](cartorio-layout.md) — Keep the original page as one centered column, with the cartório logo left-aligned in the header.
-- [API dependency install](api-dependency-install.md) — The API server's pnpm install hit a Replit package-firewall 403 for transitive `proxy-addr`; verify runtime dependencies before claiming end-to-end checks.
+- [API dependency install](api-dependency-install.md) — Resolve blocked transitive packages through a patched upstream release; keep maturity safeguards and verify the API health endpoint.
 - [Cartório progress, errors & seal](cartorio-progress-errors-seal.md) — Keep progress concise, operational errors generic, and the stamp wording exactly “SELO OFICIAL DA INUTILIDADE”.

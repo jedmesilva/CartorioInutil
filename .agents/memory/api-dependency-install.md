@@ -3,8 +3,10 @@ name: API dependency installation
 description: Notes about installing this workspace's API server dependencies in Replit.
 ---
 
-Installing the frontend and API-spec workspaces with a targeted pnpm filter succeeds, but installing the API server has been blocked by a Replit package-firewall 403 while fetching transitive `proxy-addr@2.0.7`. Do not bypass the firewall with direct registries or manual package copies; check whether a supported newer dependency path resolves the block.
+When the Replit package firewall blocks a transitive dependency, first check whether the direct parent has a newer release that requires the patched dependency. For the API server's Express stack, updating Express resolved the blocked `proxy-addr` dependency without replacing Express or adding an override. Do not bypass the firewall or install packages from an alternate registry.
 
-**Why:** The API workflow can fail before serving even when frontend typechecking passes, so UI checks alone do not confirm the API-backed feature works end to end.
+The workspace also enforces a 24-hour package maturity window. If an urgent, trusted release is younger than that, any exception should target only the exact package version; remove it after updating the lockfile, then verify a frozen install with the normal policy restored.
 
-**How to apply:** Before verifying API changes in this project, confirm the API server's dependencies are installed and its health endpoint responds. If installation is still blocked, report that limitation rather than claiming runtime verification.
+**Why:** The API server was blocked by an outdated transitive version, while the newest Express release was initially stopped by the separate maturity rule. Updating the upstream package fixed the dependency path and the service subsequently started normally.
+
+**How to apply:** Before verifying API changes, confirm the dependency tree installs from the lockfile and the API health endpoint responds. When a package is blocked, inspect its parent dependency before considering overrides or exceptions.
