@@ -2,7 +2,7 @@
 // Função pura, sem dependências: funciona no navegador e no servidor (ex.: sharp).
 
 const FONTE = "'Plus Jakarta Sans', 'Helvetica Neue', Arial, sans-serif";
-const COR_HALO = "#fffdf4";
+const COR_PAPEL = "#fffdf4";
 
 const esc = (s) =>
   String(s)
@@ -54,7 +54,7 @@ function textoEmArco(texto, cx, cy, raio, tamanho, posicao) {
       return `<text x="${x.toFixed(2)}" y="${y.toFixed(2)}" transform="rotate(${rotacao.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)})">${esc(ch)}</text>`;
     })
     .join("");
-  return `<g font-size="${tamanho}" font-weight="700" text-anchor="middle" stroke="${COR_HALO}" stroke-width="3" stroke-linejoin="round" paint-order="stroke">${itens}</g>`;
+  return `<g font-size="${tamanho}" font-weight="700" text-anchor="middle" stroke="none">${itens}</g>`;
 }
 
 export function gerarProtocolo(data = new Date()) {
@@ -93,41 +93,38 @@ export function gerarCarimboSvg(op = {}) {
   const textoInferior = textoEmArco("DA INUTILIDADE", cx, cy, 70, 14, "inferior");
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" role="img" aria-label="Selo Oficial da Inutilidade">
-  <g transform="translate(0 20) rotate(-6 320 180)" fill="${cor}" stroke="${cor}" opacity="0.88" font-family="${FONTE}">
+  <g transform="translate(0 20) rotate(-6 320 180)">
+    <!-- fundo claro discreto: dá contraste uniforme sem contornar cada letra -->
+    <rect x="20" y="20" width="600" height="320" rx="30" fill="${COR_PAPEL}" fill-opacity="0.94" />
+    <g fill="${cor}" stroke="${cor}" opacity="0.88" font-family="${FONTE}">
 
     <!-- moldura dupla -->
-    <rect x="20" y="20" width="600" height="320" rx="30" fill="none" stroke="${COR_HALO}" stroke-width="12" />
     <rect x="20" y="20" width="600" height="320" rx="30" fill="none" stroke-width="8" />
-    <rect x="34" y="34" width="572" height="292" rx="20" fill="none" stroke="${COR_HALO}" stroke-width="6" />
     <rect x="34" y="34" width="572" height="292" rx="20" fill="none" stroke-width="2" />
 
     <!-- selo -->
     <g>
-      <circle cx="${cx}" cy="${cy}" r="88" fill="none" stroke="${COR_HALO}" stroke-width="9" />
       <circle cx="${cx}" cy="${cy}" r="88" fill="none" stroke-width="5" />
-      <circle cx="${cx}" cy="${cy}" r="52" fill="none" stroke="${COR_HALO}" stroke-width="6" />
       <circle cx="${cx}" cy="${cy}" r="52" fill="none" stroke-width="2" />
       ${textoSuperior}
       ${textoInferior}
-      <circle cx="${cx - 70}" cy="${cy}" r="4.5" fill="${COR_HALO}" stroke="none" />
       <circle cx="${cx - 70}" cy="${cy}" r="2.5" stroke="none" />
-      <circle cx="${cx + 70}" cy="${cy}" r="4.5" fill="${COR_HALO}" stroke="none" />
       <circle cx="${cx + 70}" cy="${cy}" r="2.5" stroke="none" />
-      <text x="${cx}" y="${cy + 23}" font-size="68" font-weight="700" text-anchor="middle" fill="${cor}" stroke="${COR_HALO}" stroke-width="3" stroke-linejoin="round" paint-order="stroke">§</text>
+      <text x="${cx}" y="${cy + 23}" font-size="68" font-weight="700" text-anchor="middle" fill="${cor}" stroke="none">§</text>
     </g>
 
     <!-- texto principal -->
     <g transform="translate(0 30)">
-    <g text-anchor="middle" fill="${cor}" stroke="${COR_HALO}" stroke-width="3" stroke-linejoin="round" paint-order="stroke">
+    <g text-anchor="middle" stroke="none">
       <text x="414" y="108" font-size="42" font-weight="800" textLength="300" lengthAdjust="spacingAndGlyphs">AUTENTICADO</text>
       <text x="414" y="142" font-size="24" font-weight="800" letter-spacing="3">${esc(frase.toUpperCase())}</text>
     </g>
-    <line x1="284" y1="156" x2="544" y2="156" stroke="${COR_HALO}" stroke-width="5" stroke-linecap="round" />
-    <line x1="284" y1="156" x2="544" y2="156" stroke-width="1.5" />
+    <line x1="284" y1="156" x2="544" y2="156" stroke-width="1.5" stroke-linecap="round" />
 
-    <g text-anchor="middle" fill="${cor}" stroke="${COR_HALO}" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke">
+    <g text-anchor="middle" stroke="none">
       <text x="414" y="214" font-size="20" font-weight="800">${esc(formatarDataHora(data))}</text>
       <text x="414" y="242" font-size="15" font-weight="700">Protocolo nº ${esc(protocolo)}</text>
+    </g>
     </g>
     </g>
   </g>

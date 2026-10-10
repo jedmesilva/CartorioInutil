@@ -1,3 +1,3 @@
 - [Layout direction](cartorio-layout.md) — Keep the original page as one centered column, with the cartório logo left-aligned in the header.
 - [API dependency install](api-dependency-install.md) — Resolve blocked transitive packages through a patched upstream release; keep maturity safeguards and verify the API health endpoint.
-- [Cartório progress, errors & seal](cartorio-progress-errors-seal.md) — Keep upright seal arcs, omit tabelião, and retain green ink with a light contrast edge.
+- [Cartório progress, errors & seal](cartorio-progress-errors-seal.md) — Keep upright arcs, omit tabelião, and use solid green ink on a subtle backing; avoid letter halos.
