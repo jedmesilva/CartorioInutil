@@ -6,6 +6,8 @@ import { gerarCarimboSvg } from "./carimbo.mjs";
 
 const SVG_LARGURA = 1080; // largura (viewBox) do SVG do carimbo
 const SVG_ALTURA = 688;
+const INCLINACAO_GRAUS = -8;
+const PROPORCAO_ALTURA = SVG_ALTURA / SVG_LARGURA;
 
 export const TIPOS_IMAGEM = ["image/jpeg", "image/png", "image/webp"];
 export const TIPO_PDF = "application/pdf";
@@ -23,8 +25,19 @@ async function carimboPng(svg, largura) {
   const density = Math.min(1200, Math.max(72, (72 * w) / SVG_LARGURA));
   return sharp(Buffer.from(svg), { density })
     .resize({ width: w })
+    .rotate(INCLINACAO_GRAUS, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png()
     .toBuffer();
+}
+
+// Calcula a escala pelo retângulo ocupado depois da rotação, evitando cortes.
+function larguraCarimboInclinado(limiteLargura, limiteAltura) {
+  const angulo = (Math.abs(INCLINACAO_GRAUS) * Math.PI) / 180;
+  const cos = Math.cos(angulo);
+  const sin = Math.sin(angulo);
+  const fatorLargura = cos + PROPORCAO_ALTURA * sin;
+  const fatorAltura = sin + PROPORCAO_ALTURA * cos;
+  return Math.min(limiteLargura / fatorLargura, limiteAltura / fatorAltura);
 }
 
 /** Carimba uma imagem (JPEG, PNG ou WEBP). Devolve { buffer, tipo, extensao }. */
@@ -39,12 +52,9 @@ export async function carimbarImagem(buffer, tipo, onProgress = () => {}) {
   }
   const { width: W, height: H } = base.info;
 
-  // O carimbo ocupa até 45% da largura e 50% da altura, no canto inferior direito.
+  // O carimbo inclinado ocupa até 45% da largura e 50% da altura, no canto inferior direito.
   onProgress({ mensagem: "Preparando o selo..." });
-  let largura = W * 0.45;
-  if ((largura * SVG_ALTURA) / SVG_LARGURA > H * 0.5) {
-    largura = (H * 0.5 * SVG_LARGURA) / SVG_ALTURA;
-  }
+  const largura = larguraCarimboInclinado(W * 0.45, H * 0.5);
   const stamp = await carimboPng(gerarCarimboSvg(), largura);
   const meta = await sharp(stamp).metadata();
   const margem = Math.round(W * 0.03);
