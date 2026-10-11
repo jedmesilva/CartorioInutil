@@ -16,6 +16,7 @@ _Replace the heading above with the project's name, and this line with one sente
 - pnpm workspaces, Node.js 24, TypeScript 5.9
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
+- Image/PDF processing: Sharp, pdf-lib, and Poppler (`pdftoppm`)
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
@@ -30,7 +31,8 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Stamps images and PDFs with the supplied transparent cartório seal.
+- Automatically chooses the original green ink on light areas or off-white ink on dark areas; PDF pages are analyzed separately.
 
 ## User preferences
 
@@ -38,7 +40,8 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The API uses the `poppler` Nix package configured in `.replit` to render PDF page previews for contrast sampling. Pages are streamed through the renderer; files are not saved for this analysis.
+- Transparent image regions have no known display background, so they default to the original green seal.
 
 ## Pointers
 
