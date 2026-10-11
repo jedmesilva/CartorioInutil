@@ -21,13 +21,15 @@ export type ProgressoAutenticacao =
 
 type CallbackProgresso = (progresso: ProgressoAutenticacao) => void;
 
-const MENSAGEM_FALHA_AUTENTICACAO =
-  "Não foi possível autenticar o documento. Tente novamente.";
-
 export function carimbarComProgresso(
   arquivo: File,
   atualizarProgresso: CallbackProgresso,
 ): Promise<Blob> {
+  const ehPdf =
+    arquivo.type === "application/pdf" || /\.pdf$/i.test(arquivo.name);
+  const tipoArquivo = ehPdf ? "PDF" : "imagem";
+  const artigoArquivo = ehPdf ? "do PDF" : "da imagem";
+  const mensagemFalha = `Não foi possível autenticar ${ehPdf ? "o PDF" : "a imagem"}. Tente novamente.`;
   const idProgresso = crypto.randomUUID();
   const urlBase = getCarimbarArquivoUrl();
   const urlProgresso = getAcompanharProgressoCarimboUrl(idProgresso);
@@ -55,7 +57,7 @@ export function carimbarComProgresso(
     };
 
     const tempoLimiteConexao = window.setTimeout(() => {
-      falhar(new Error(MENSAGEM_FALHA_AUTENTICACAO));
+      falhar(new Error(mensagemFalha));
     }, 15000);
 
     eventos.onmessage = (evento) => {
@@ -63,7 +65,7 @@ export function carimbarComProgresso(
       try {
         atualizacao = JSON.parse(evento.data) as CarimboProgressoEvento;
       } catch {
-        falhar(new Error(MENSAGEM_FALHA_AUTENTICACAO));
+        falhar(new Error(mensagemFalha));
         return;
       }
 
@@ -79,7 +81,7 @@ export function carimbarComProgresso(
       } else if (atualizacao.fase === "concluido" || atualizacao.fase === "erro") {
         eventos.close();
       } else {
-        falhar(new Error(MENSAGEM_FALHA_AUTENTICACAO));
+        falhar(new Error(mensagemFalha));
       }
     };
 
@@ -93,7 +95,7 @@ export function carimbarComProgresso(
         avisoConexaoMostrado = true;
         atualizarProgresso({
           fase: "processamento",
-          mensagem: "Aguardando o arquivo final...",
+          mensagem: `Aguardando o resultado da autenticação ${artigoArquivo}...`,
         });
       }
     };
@@ -105,7 +107,7 @@ export function carimbarComProgresso(
       atualizarProgresso({
         fase: "envio",
         percentual: 0,
-        mensagem: "Enviando o arquivo: 0%",
+        mensagem: `Enviando ${tipoArquivo}: 0%`,
       });
 
       const dados = new FormData();
@@ -123,7 +125,7 @@ export function carimbarComProgresso(
         atualizarProgresso({
           fase: "envio",
           percentual,
-          mensagem: `Enviando o arquivo: ${percentual}%`,
+          mensagem: `Enviando ${tipoArquivo}: ${percentual}%`,
         });
       });
 
@@ -132,7 +134,7 @@ export function carimbarComProgresso(
         if (processamentoRecebido) return;
         atualizarProgresso({
           fase: "processamento",
-          mensagem: "Aguardando processamento...",
+          mensagem: `Aguardando o processamento ${artigoArquivo}...`,
         });
       });
 
@@ -144,14 +146,14 @@ export function carimbarComProgresso(
           resolve(xhr.response as Blob);
           return;
         }
-        falhar(new Error(MENSAGEM_FALHA_AUTENTICACAO));
+        falhar(new Error(mensagemFalha));
       });
 
       xhr.addEventListener("error", () => {
-        falhar(new Error(MENSAGEM_FALHA_AUTENTICACAO));
+        falhar(new Error(mensagemFalha));
       });
       xhr.addEventListener("abort", () => {
-        falhar(new Error(MENSAGEM_FALHA_AUTENTICACAO));
+        falhar(new Error(mensagemFalha));
       });
       xhr.send(dados);
     };

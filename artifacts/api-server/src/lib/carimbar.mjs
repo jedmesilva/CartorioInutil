@@ -210,7 +210,7 @@ function larguraCarimboInclinado(limiteLargura, limiteAltura) {
 
 /** Carimba uma imagem (JPEG, PNG ou WEBP). Devolve { buffer, tipo, extensao }. */
 export async function carimbarImagem(buffer, tipo, onProgress = () => {}) {
-  onProgress({ mensagem: "Lendo e preparando a imagem..." });
+  onProgress({ mensagem: "Preparando a imagem para autenticação..." });
   let base;
   try {
     // rotate() aplica a orientação EXIF antes de medir a imagem
@@ -221,7 +221,7 @@ export async function carimbarImagem(buffer, tipo, onProgress = () => {}) {
   const { width: W, height: H } = base.info;
 
   // O carimbo inclinado ocupa até 45% da largura e 50% da altura, no canto inferior direito.
-  onProgress({ mensagem: "Preparando o selo..." });
+  onProgress({ mensagem: "Preparando o selo para a imagem..." });
   const largura = larguraCarimboInclinado(W * 0.45, H * 0.5);
   const metaSelo = await sharp(
     await carimboPng(gerarCarimboSvg({ cor: COR_SELO_VERDE }), largura),
@@ -252,7 +252,7 @@ export async function carimbarImagem(buffer, tipo, onProgress = () => {}) {
     },
   ]);
 
-  onProgress({ mensagem: "Aplicando o selo e gerando a imagem final..." });
+  onProgress({ mensagem: "Aplicando o selo à imagem e gerando o arquivo final..." });
   if (tipo === "image/jpeg") {
     return { buffer: await img.jpeg({ quality: 92 }).toBuffer(), tipo: "image/jpeg", extensao: "jpg" };
   }
@@ -261,7 +261,7 @@ export async function carimbarImagem(buffer, tipo, onProgress = () => {}) {
 
 /** Carimba todas as páginas de um PDF. Devolve { buffer, tipo, extensao }. */
 export async function carimbarPdf(buffer, onProgress = () => {}) {
-  onProgress({ mensagem: "Abrindo o PDF..." });
+  onProgress({ mensagem: "Lendo o PDF para autenticação..." });
   let pdf;
   try {
     pdf = await PDFDocument.load(buffer);
@@ -269,7 +269,7 @@ export async function carimbarPdf(buffer, onProgress = () => {}) {
     throw new ErroDeArquivo("Não foi possível ler este PDF. Ele pode estar protegido por senha ou corrompido.");
   }
 
-  onProgress({ mensagem: "Preparando o selo..." });
+  onProgress({ mensagem: "Preparando o selo para o PDF..." });
   const data = new Date();
   const protocolo = gerarProtocolo();
   const [pngVerde, pngClaro] = await Promise.all([
@@ -300,7 +300,7 @@ export async function carimbarPdf(buffer, onProgress = () => {}) {
     const y = margem;
 
     onProgress({
-      mensagem: `Analisando contraste da página ${index + 1} de ${pages.length}...`,
+      mensagem: `Analisando o contraste da página ${index + 1} de ${pages.length} do PDF...`,
       paginaAtual: index + 1,
       totalPaginas: pages.length,
     });
@@ -339,13 +339,13 @@ export async function carimbarPdf(buffer, onProgress = () => {}) {
       height: h,
     });
     onProgress({
-      mensagem: `Carimbando página ${index + 1} de ${pages.length}...`,
+      mensagem: `Aplicando o selo à página ${index + 1} de ${pages.length} do PDF...`,
       paginaAtual: index + 1,
       totalPaginas: pages.length,
     });
   }
 
-  onProgress({ mensagem: "Salvando o PDF final..." });
+  onProgress({ mensagem: "Salvando o PDF autenticado..." });
   const out = await pdf.save();
   return { buffer: Buffer.from(out), tipo: TIPO_PDF, extensao: "pdf" };
 }

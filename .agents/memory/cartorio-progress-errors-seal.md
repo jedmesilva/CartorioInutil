@@ -3,7 +3,7 @@ name: Cartório progress, errors & seal
 description: Product rules for upload feedback, user-facing errors, and document-stamp wording.
 ---
 
-- Show only the active upload/authentication status; upload can show its percentage, then show the current processing update without repeated labels or explanatory filler.
+- Show only the active upload/authentication status; identify the selected type (“imagem” or “PDF”) in the action label, loading title, and progress copy. Upload can show its percentage, then the current processing update without repeated labels or filler.
 - Keep operational failures generic and nontechnical in the client. Keep file-type and size validation actionable, and give users a simple next step for sharing failures.
 - The circular seal repeats “100% INÚTIL” on both upper and lower arcs; the main heading is “AUTENTICADO” with “1º cartório oficial de / notas inúteis” beneath it.
 - Put dynamic “DATA:” and “PROTOCOLO Nº:” fields below the main frame; show the date and time as DD/MM/YYYY às HH:MM in America/Sao_Paulo and the protocol as six digits.

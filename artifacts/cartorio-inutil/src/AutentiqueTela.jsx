@@ -118,8 +118,15 @@ const servicos = [
 const TIPOS_IMAGEM = ["image/jpeg", "image/png", "image/webp"];
 const TAMANHO_MAXIMO = 15 * 1024 * 1024; // mesmo limite do servidor
 
+const ehPdf = (file) =>
+  file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+
+const tipoDeAutenticacao = (file) => (ehPdf(file) ? "PDF" : "imagem");
+
+const artigoDoArquivo = (file) => (ehPdf(file) ? "do PDF" : "da imagem");
+
 const formatoDoArquivo = (file) => {
-  if (file.type === "application/pdf" || /\.pdf$/i.test(file.name)) return "PDF";
+  if (ehPdf(file)) return "PDF";
   if (file.type === "image/jpeg") return "JPEG";
   if (file.type === "image/png") return "PNG";
   if (file.type === "image/webp") return "WEBP";
@@ -148,6 +155,8 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
       mensagem: "Preparando o envio...",
     }),
   );
+  const tipoAutenticacao = arquivo ? tipoDeAutenticacao(arquivo) : "";
+  const artigoArquivo = arquivo ? artigoDoArquivo(arquivo) : "";
 
   useEffect(() => {
     if (!arquivo || !TIPOS_IMAGEM.includes(arquivo.type)) {
@@ -171,9 +180,9 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
     if (!file) return;
     setErro(null);
 
-    const ehPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+    const arquivoPdf = ehPdf(file);
     const ehImagem = TIPOS_IMAGEM.includes(file.type);
-    if (!ehPdf && !ehImagem) {
+    if (!arquivoPdf && !ehImagem) {
       setErro("Formato não aceito. Envie PDF, JPG, PNG ou WEBP.");
       return;
     }
@@ -207,7 +216,7 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
     setTela("progresso");
     setProgressoAutenticacao({
       fase: "conectando",
-      mensagem: "Preparando o envio...",
+      mensagem: `Preparando a autenticação ${artigoArquivo}...`,
     });
     try {
       const blob = await carimbarComProgresso(arquivo, setProgressoAutenticacao);
@@ -221,7 +230,9 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
       });
       setTela("resultado");
     } catch {
-      setErro("Não foi possível autenticar o documento. Tente novamente.");
+      setErro(
+        `Não foi possível autenticar ${tipoAutenticacao === "PDF" ? "o PDF" : "a imagem"}. Tente novamente.`,
+      );
       setTela("selecao");
     } finally {
       setProcessando(false);
@@ -339,7 +350,7 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
                 <>
                   <div className="aut-upload-status">
                     <h1 id="aut-feedback-title" className="aut-progress-title">
-                      Enviando arquivo
+                      Enviando {tipoAutenticacao}
                     </h1>
                     <span className="aut-progress-percent" aria-hidden="true">
                       {progressoAutenticacao.percentual}%
@@ -348,11 +359,11 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
                   <div
                     className="aut-progress-track"
                     role="progressbar"
-                    aria-label="Envio do arquivo"
+                    aria-label={`Envio ${artigoArquivo}`}
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-valuenow={progressoAutenticacao.percentual}
-                    aria-valuetext={`Enviado ${progressoAutenticacao.percentual}%`}
+                    aria-valuetext={`${tipoAutenticacao === "PDF" ? "Enviado" : "Enviada"} ${progressoAutenticacao.percentual}%`}
                   >
                     <div
                       className="aut-progress-indicator"
@@ -375,8 +386,8 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
                   <div className="aut-spinner" aria-hidden="true" />
                   <h1 id="aut-feedback-title" className="aut-progress-title">
                     {progressoAutenticacao.fase === "conectando"
-                      ? "Preparando envio"
-                      : "Autenticando documento"}
+                      ? `Preparando a autenticação ${artigoArquivo}`
+                      : `Autenticando ${tipoAutenticacao}`}
                   </h1>
                   {progressoAutenticacao.fase === "processamento" && (
                     <p className="aut-progress-message">
@@ -393,7 +404,9 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
               <span style={styles.successMark} aria-hidden="true">✓</span>
               AUTENTICAÇÃO CONCLUÍDA
             </div>
-            <h1 id="aut-result-title" style={styles.feedbackTitle}>Seu arquivo está pronto.</h1>
+            <h1 id="aut-result-title" style={styles.feedbackTitle}>
+              {resultado.blob.type === "application/pdf" ? "Seu PDF está pronto." : "Sua imagem está pronta."}
+            </h1>
             <p style={styles.feedbackDescription}>
               O carimbo de inutilidade foi aplicado com sucesso.
             </p>
@@ -592,16 +605,22 @@ export default function AutentiqueTela({ onSelectFile, onSelectServico }) {
             }}
           >
             {processando
-              ? "Autenticando arquivo…"
+              ? `Autenticando ${tipoAutenticacao}…`
               : resultado
-                ? "Documento autenticado"
-                : "Autenticar documento"}
+                ? tipoAutenticacao === "PDF" ? "PDF autenticado" : "Imagem autenticada"
+                : `Autenticar ${tipoAutenticacao}`}
           </button>
         )}
 
         {(processando || resultado || erro) && (
           <div style={styles.resultado}>
-            {processando && <p style={styles.resTxt}>Carimbando seu arquivo…</p>}
+            {processando && (
+              <p style={styles.resTxt}>
+                {tipoAutenticacao === "PDF"
+                  ? "Aplicando o carimbo ao PDF…"
+                  : "Aplicando o carimbo à imagem…"}
+              </p>
+            )}
             {erro && <p role="alert" style={{ ...styles.resTxt, color: "#9a3b2e" }}>{erro}</p>}
             {resultado && (
               <>
