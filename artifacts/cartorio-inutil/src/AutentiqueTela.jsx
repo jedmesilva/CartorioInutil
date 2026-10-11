@@ -67,27 +67,10 @@ const icons = {
       <path d="M9 13h6M9 17h4" />
     </Icon>
   ),
-  acordo: (
-    <Icon size={32}>
-      <path d="m11 17 2 2a1.4 1.4 0 0 0 2-2" />
-      <path d="m14 14 2.5 2.5a1.4 1.4 0 0 0 2-2l-3.4-3.4a2 2 0 0 0-2.8 0l-.9.9a1.4 1.4 0 0 1-2 0 1.4 1.4 0 0 1 0-2L12 7.5a4 4 0 0 1 3-.5l2.5.6" />
-      <path d="m2 12 4-4 4 1" />
-      <path d="M22 12l-3-3" />
-      <path d="m8 18 1.5 1.5a1.4 1.4 0 0 0 2-2" />
-      <path d="m6 16 2 2a1.4 1.4 0 0 0 2-2" />
-    </Icon>
-  ),
   reconhecimento: (
     <Icon size={30}>
       <path d="M12 3 4.5 6v5.5c0 4.5 3.2 8 7.5 9.5 4.3-1.5 7.5-5 7.5-9.5V6z" />
       <path d="m9 12 2.2 2.2L15.5 10" />
-    </Icon>
-  ),
-  plano: (
-    <Icon size={30}>
-      <rect x="3" y="5" width="18" height="16" rx="2" />
-      <path d="M3 10h18M8 3v4M16 3v4" />
-      <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" strokeWidth="2.4" />
     </Icon>
   ),
   outra: (
@@ -107,9 +90,7 @@ const icons = {
 const servicos = [
   { id: "promessa", titulo: "Promessa", desc: "Registre o que você pretende fazer." },
   { id: "declaracao", titulo: "Declaração", desc: "Declare qualquer coisa, por mais absurda que seja." },
-  { id: "acordo", titulo: "Acordo", desc: "Formalize um compromisso entre você e outra pessoa." },
   { id: "reconhecimento", titulo: "Reconhecimento", desc: "Reconheça um fato absolutamente inútil." },
-  { id: "plano", titulo: "Plano de vida", desc: "Registre aquela mudança que começa na segunda." },
   { id: "outra", titulo: "Outra certidão", desc: "Porque a burocracia não pode limitar sua criatividade." },
 ];
 
