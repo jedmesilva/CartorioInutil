@@ -1,3 +1,3 @@
 - [Layout direction](cartorio-layout.md) — Keep the original page as one centered column, with the cartório logo left-aligned in the header.
 - [API dependency install](api-dependency-install.md) — Resolve blocked transitive packages through a patched upstream release; keep maturity safeguards and verify the API health endpoint.
-- [Cartório progress, errors & seal](cartorio-progress-errors-seal.md) — Match the distressed serif seal reference; keep date and protocol dynamic and avoid letter halos.
+- [Cartório progress, errors & seal](cartorio-progress-errors-seal.md) — Use the user's transparent 1080×688 stamp source; keep date/protocol dynamic and add no paper card.

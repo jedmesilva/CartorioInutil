@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="688" viewBox="0 0 1080 688">
+<defs>
+
+
+
+
+
+
+
+<path id="cn-t" d="M131 270A94 94 0 0 1 319 270"/>
+<path id="cn-b" d="M107 270A118 118 0 0 0 343 270"/>
+</defs>
+
+<g>
+<g fill="none" stroke="#0f4c2d" stroke-linecap="round">
+<rect x="67" y="113" width="949" height="313" rx="42" stroke-width="9"/>
+<circle cx="225" cy="270" r="134" stroke-width="8"/>
+<circle cx="225" cy="270" r="78" stroke-width="4.5"/>
+<path d="M372 138V405" stroke-width="4.5"/>
+<path d="M400 282H982" stroke-width="6"/>
+<path d="M282 511H940M468 585H940" stroke-width="3"/>
+</g>
+<g fill="#0f4c2d" font-family="'Playfair Display',Georgia,'Times New Roman',serif" font-weight="700">
+<circle cx="122" cy="270" r="5"/>
+<circle cx="328" cy="270" r="5"/>
+<text font-size="30" text-anchor="middle" letter-spacing="1.2"/>
+<text font-size="30" text-anchor="middle" letter-spacing="3.2"/>
+<text x="225" y="307" font-size="128" font-weight="900" text-anchor="middle">§</text>
+<text x="400" y="247" font-size="109" font-weight="900" textLength="585" lengthAdjust="spacingAndGlyphs">AUTENTICADO</text>
+<text x="440" y="340" font-size="46" textLength="507" lengthAdjust="spacing">1º cartório oficial de</text>
+<text x="540" y="390" font-size="46" textLength="318" lengthAdjust="spacing">notas inúteis</text>
+<text x="137" y="505" font-size="35" font-weight="900" textLength="125" lengthAdjust="spacing">DATA:</text>
+<text x="137" y="578" font-size="35" font-weight="900" textLength="315" lengthAdjust="spacing">PROTOCOLO Nº:</text>
+</g>
+<g fill="#0f4c2d" font-family="'Courier Prime','Courier New',Courier,monospace" font-size="42" letter-spacing="2">
+<text x="375" y="500">10/10/2026</text>
+<text x="522" y="575">000001</text>
+</g>
+</g>
+</svg>

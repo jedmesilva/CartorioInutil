@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Carimbo do 1º Cartório Oficial de Notas Inúteis</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime&family=Playfair+Display:wght@700;900&display=swap">
+<style>
+:root{--bg:#f0f1ee;--fg:#1b2a21;--mut:#5b6a60;--card:#fbfbf9;--bd:#d6d9d2;--ac:#0f4c2d;--on:#f3f0e2;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a14;--fg:#e7eee6;--mut:#9db0a1;--card:#17251c;--bd:#2b3d31;--ac:#7fcf9b;--on:#0f1a14}}
+:root[data-theme="dark"]{--bg:#0f1a14;--fg:#e7eee6;--mut:#9db0a1;--card:#17251c;--bd:#2b3d31;--ac:#7fcf9b;--on:#0f1a14}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 32px}
+h1{font-size:20px;margin:0 0 4px}
+p{margin:0 0 16px;color:var(--mut);font-size:14px}
+#out{border-radius:14px;overflow:hidden;line-height:0;border:1px solid var(--bd)}
+#out svg{width:100%;height:auto;display:block}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+label{display:block;font-size:13px;color:var(--mut)}
+input,textarea{box-sizing:border-box;width:100%;margin-top:4px;padding:12px;font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:10px}
+details{border:1px solid var(--bd);border-radius:12px;padding:12px;background:var(--card)}
+summary{cursor:pointer;font-weight:600}
+code,pre,textarea{font:12px/1.5 ui-monospace,Menlo,Consolas,monospace}
+pre{margin:8px 0;padding:10px;overflow-x:auto;border-radius:8px;background:var(--bg)}
+textarea{height:180px;resize:vertical}
+.bt{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+button{padding:10px 16px;font:inherit;font-weight:600;color:var(--on);background:var(--ac);border:0;border-radius:10px}
+#msg{font-size:13px;color:var(--mut)}
+[hidden]{display:none!important}
+.chk{display:flex;gap:10px;align-items:center;margin:0 0 12px;font-size:15px;color:var(--fg)}
+.chk input{width:20px;height:20px;margin:0;padding:0;accent-color:var(--ac)}
+#out.alpha{background:linear-gradient(45deg,#e4e4e4 25%,transparent 25%,transparent 75%,#e4e4e4 75%) 0 0/24px 24px,linear-gradient(45deg,#e4e4e4 25%,transparent 25%,transparent 75%,#e4e4e4 75%) 12px 12px/24px 24px,#fafafa}
+#m2{font-size:13px;color:var(--mut)}
+</style>
+</head>
+<body>
+<main>
+<h1>Carimbo parametrizável</h1>
+<p>Edite os campos ou passe <code>?data=10/10/2026&amp;protocolo=1</code> na URL.</p>
+<div id="out"></div>
+<div class="row">
+<label>Data<input id="d" autocomplete="off"></label>
+<label>Protocolo Nº<input id="p" autocomplete="off"></label>
+</div>
+<label class="chk"><input id="t" type="checkbox"> Sem fundo (PNG e SVG transparentes)</label>
+<div class="bt" id="dls" hidden style="margin:0 0 16px">
+<button id="g1" type="button">Baixar PNG</button>
+<button id="g2" type="button">Baixar SVG</button>
+<span id="m2"></span>
+</div>
+<details>
+<summary>Código e parâmetros</summary>
+<pre>carimbo({ data, protocolo, cor, fundo })
+// data: "10/10/2026" ou "2026-10-10" (padrão: hoje)
+// protocolo: "1" vira "000001"
+// cor: "#0f4c2d"   fundo: "transparent" tira o papel
+// fontes: Playfair Display e Courier Prime</pre>
+<textarea id="src" readonly spellcheck="false" aria-label="Código copiável"></textarea>
+<div class="bt">
+<button id="b1" type="button">Copiar SVG</button>
+<button id="b2" type="button">Copiar função JS</button>
+<span id="msg"></span>
+</div>
+</details>
+</main>
+<script>
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function hoje(){var d=new Date(),p=function(n){return String(n).padStart(2,'0')};return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()}
+function carimbo(o){
+  o=o||{};
+  var data=String(o.data==null?hoje():o.data).trim().replace(/^(\d{4})-(\d{2})-(\d{2})$/,'$3/$2/$1'),
+      prot=String(o.protocolo==null?'000001':o.protocolo).trim(),
+      cor=String(o.cor||'#0f4c2d').trim(),
+      fundo=String(o.fundo==null?'#f3f0e2':o.fundo).trim();
+  if(/^\d{1,6}$/.test(prot))prot=prot.padStart(6,'0');
+  if(/^[0-9a-f]{3,8}$/i.test(cor))cor='#'+cor;
+  if(/^[0-9a-f]{3,8}$/i.test(fundo))fundo='#'+fundo;
+  var sem=!fundo||/^(none|transparent|transparente)$/i.test(fundo),C=esc(cor);
+  function fit(t,max){return t.length*27.2>max?' textLength="'+max+'" lengthAdjust="spacingAndGlyphs"':''}
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="688" viewBox="0 0 1080 688" role="img" aria-label="Autenticado, 1º cartório oficial de notas inúteis. Data ${esc(data)}. Protocolo ${esc(prot)}.">
+<defs>
+<filter id="cn-r" filterUnits="userSpaceOnUse" x="0" y="0" width="1080" height="688" color-interpolation-filters="sRGB">
+<feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" result="a"/>
+<feDisplacementMap in="SourceGraphic" in2="a" scale="6" xChannelSelector="R" yChannelSelector="G" result="d"/>
+<feTurbulence type="fractalNoise" baseFrequency=".6" numOctaves="2" seed="11" result="b"/>
+<feColorMatrix in="b" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  11 0 0 0 -3.6" result="m"/>
+<feComposite in="d" in2="m" operator="in"/>
+</filter>
+<path id="cn-t" d="M131 270A94 94 0 0 1 319 270"/>
+<path id="cn-b" d="M107 270A118 118 0 0 0 343 270"/>
+</defs>
+${sem?'':'<rect width="1080" height="688" fill="'+esc(fundo)+'"/>'}
+<g filter="url(#cn-r)">
+<g fill="none" stroke="${C}" stroke-linecap="round">
+<rect x="67" y="113" width="949" height="313" rx="42" stroke-width="9"/>
+<circle cx="225" cy="270" r="134" stroke-width="8"/>
+<circle cx="225" cy="270" r="78" stroke-width="4.5"/>
+<path d="M372 138V405" stroke-width="4.5"/>
+<path d="M400 282H982" stroke-width="6"/>
+<path d="M282 511H940M468 585H940" stroke-width="3"/>
+</g>
+<g fill="${C}" font-family="'Playfair Display',Georgia,'Times New Roman',serif" font-weight="700" style="font-variant-numeric:lining-nums">
+<circle cx="122" cy="270" r="5"/>
+<circle cx="328" cy="270" r="5"/>
+<text font-size="30" text-anchor="middle" letter-spacing="1.2"><textPath href="#cn-t" startOffset="50%">100% INÚTIL</textPath></text>
+<text font-size="30" text-anchor="middle" letter-spacing="3.2"><textPath href="#cn-b" startOffset="50%">100% INÚTIL</textPath></text>
+<text x="225" y="307" font-size="128" font-weight="900" text-anchor="middle">§</text>
+<text x="400" y="247" font-size="109" font-weight="900" textLength="585" lengthAdjust="spacingAndGlyphs">AUTENTICADO</text>
+<text x="440" y="340" font-size="46" textLength="507" lengthAdjust="spacing">1º cartório oficial de</text>
+<text x="540" y="390" font-size="46" textLength="318" lengthAdjust="spacing">notas inúteis</text>
+<text x="137" y="505" font-size="35" font-weight="900" textLength="125" lengthAdjust="spacing">DATA:</text>
+<text x="137" y="578" font-size="35" font-weight="900" textLength="315" lengthAdjust="spacing">PROTOCOLO Nº:</text>
+</g>
+<g fill="${C}" font-family="'Courier Prime','Courier New',Courier,monospace" font-size="42" letter-spacing="2">
+<text x="375" y="500"${fit(data,557)}>${esc(data)}</text>
+<text x="522" y="575"${fit(prot,410)}>${esc(prot)}</text>
+</g>
+</g>
+</svg>`;
+}
+var q=new URLSearchParams(location.search),
+    d=document.getElementById('d'),p=document.getElementById('p'),
+    out=document.getElementById('out'),src=document.getElementById('src'),
+    msg=document.getElementById('msg'),svg='';
+d.value=q.get('data')||hoje();
+p.value=q.get('protocolo')||'000001';
+var t=document.getElementById('t');
+t.checked=q.get('fundo')==null||/^(none|transparent|transparente|)$/i.test(q.get('fundo'));
+function draw(){
+  svg=carimbo({data:d.value,protocolo:p.value,cor:q.get('cor')||undefined,fundo:t.checked?'transparent':(q.get('fundo')||undefined)});
+  out.innerHTML=svg;
+  out.className=t.checked?'alpha':'';
+}
+d.oninput=p.oninput=t.onchange=draw;
+draw();
+var dl=null,m2=document.getElementById('m2');
+function png(){
+  return new Promise(function(ok,no){
+    var im=new Image(),u=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
+    im.onload=function(){
+      var c=document.createElement('canvas');c.width=2160;c.height=1376;
+      c.getContext('2d').drawImage(im,0,0,2160,1376);URL.revokeObjectURL(u);
+      c.toBlob(function(b){b?ok(b):no(new Error('png'))},'image/png');
+    };
+    im.onerror=function(){no(new Error('img'))};
+    im.src=u;
+  });
+}
+function baixar(ext){
+  if(!dl)return;
+  m2.textContent='';
+  (ext==='png'?png():Promise.resolve(svg)).then(function(data){
+    return dl.save({filename:'carimbo-'+(p.value.replace(/[^\w-]+/g,'')||'novo')+'.'+ext,data:data});
+  }).then(function(){m2.textContent='Salvo.'},function(e){
+    m2.textContent=e&&e.code==='declined'?'':'Não deu para salvar ('+((e&&e.code)||'erro')+').';
+  });
+}
+document.getElementById('g1').onclick=function(){baixar('png')};
+document.getElementById('g2').onclick=function(){baixar('svg')};
+if(window.claude&&window.claude.use)Promise.resolve(window.claude.use('downloads')).then(function(m){dl=m;if(m)document.getElementById('dls').hidden=false},function(){});
+function pick(t){
+  src.value=t;src.focus();src.select();src.setSelectionRange(0,t.length);
+  var ok=false;try{ok=document.execCommand('copy')}catch(e){}
+  msg.textContent=ok?'Copiado!':'Selecionado: toque e copie.';
+}
+document.getElementById('b1').onclick=function(){pick(svg)};
+document.getElementById('b2').onclick=function(){pick([esc,hoje,carimbo].map(String).join('\n\n'))};
+</script>
+</body>
+</html>

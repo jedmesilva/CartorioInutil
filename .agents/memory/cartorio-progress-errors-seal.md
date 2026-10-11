@@ -8,8 +8,9 @@ description: Product rules for upload feedback, user-facing errors, and document
 - The circular seal repeats “100% INÚTIL” on both upper and lower arcs; the main heading is “AUTENTICADO” with “1º cartório oficial de / notas inúteis” beneath it.
 - Put dynamic “DATA:” and “PROTOCOLO Nº:” fields below the main frame; show the date as DD/MM/YYYY and the protocol as six digits.
 - Do not include a “Tabelião” line on this project's authentication stamp.
-- Match the user's reference with distressed dark-green serif ink on a light paper-colored card; do not outline individual letters.
+- Treat the user's attached 1080×688 SVG/HTML as the canonical stamp: transparent background, distressed dark-green serif ink, one rounded frame, the specified circular seal, and the original text layout.
+- Do not add a paper card, extra frame/circle, or per-letter outline. Keep date and six-digit protocol dynamic, and omit the tabelião line.
 
-**Why:** The user asked to replace the previous seal with the attached reference. They rejected per-letter outlines because the lettering looked like scratches; the paper-colored card makes the reference's solid green ink readable on dark files.
+**Why:** The user said the prior redesign looked poor and supplied the SVG and HTML as the correct design. Those files define a transparent green stamp with exact proportions; they supersede the earlier paper-card direction.
 
-**How to apply:** Preserve the reference's wording, serif hierarchy, distressed ink, and paper card when changing the shared generator. Keep date and protocol dynamic, omit the tabelião line, and verify the same SVG treatment in image and PDF output.
+**How to apply:** Preserve the supplied geometry, wording, color, and ink texture in image and PDF output. For renderer compatibility, adapt text-on-path only when needed, keeping the arcs in the same positions and reading direction.

@@ -4,8 +4,8 @@ import sharp from "sharp";
 import { PDFDocument } from "pdf-lib";
 import { gerarCarimboSvg } from "./carimbo.mjs";
 
-const SVG_LARGURA = 800; // largura (viewBox) do SVG do carimbo
-const SVG_ALTURA = 420;
+const SVG_LARGURA = 1080; // largura (viewBox) do SVG do carimbo
+const SVG_ALTURA = 688;
 
 export const TIPOS_IMAGEM = ["image/jpeg", "image/png", "image/webp"];
 export const TIPO_PDF = "application/pdf";
