@@ -6,7 +6,7 @@ description: Product rules for upload feedback, user-facing errors, and document
 - Show only the active upload/authentication status; upload can show its percentage, then show the current processing update without repeated labels or explanatory filler.
 - Keep operational failures generic and nontechnical in the client. Keep file-type and size validation actionable, and give users a simple next step for sharing failures.
 - The circular seal repeats “100% INÚTIL” on both upper and lower arcs; the main heading is “AUTENTICADO” with “1º cartório oficial de / notas inúteis” beneath it.
-- Put dynamic “DATA:” and “PROTOCOLO Nº:” fields below the main frame; show the date as DD/MM/YYYY and the protocol as six digits.
+- Put dynamic “DATA:” and “PROTOCOLO Nº:” fields below the main frame; show the date and time as DD/MM/YYYY às HH:MM in America/Sao_Paulo and the protocol as six digits.
 - Do not include a “Tabelião” line on this project's authentication stamp.
 - Treat the user's attached 1080×688 SVG/HTML as the canonical stamp: transparent background, distressed serif ink, one rounded frame, the specified circular seal, and the original text layout.
 - Use the original dark green on light backgrounds and an off-white ink variant on dark backgrounds; select per image or PDF page based on the sampled region beneath the seal.

@@ -52,21 +52,16 @@ export function gerarProtocolo() {
 }
 
 export function formatarDataHora(data = new Date()) {
-  const txt = data.toLocaleString("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    dateStyle: "short",
-    timeStyle: "short",
-  });
-  return txt.replace(", ", " às ");
-}
-
-function formatarData(data) {
-  return data.toLocaleDateString("pt-BR", {
+  const partes = Object.fromEntries(new Intl.DateTimeFormat("pt-BR", {
     timeZone: "America/Sao_Paulo",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-  });
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(data).map(({ type, value }) => [type, value]));
+  return `${partes.day}/${partes.month}/${partes.year} às ${partes.hour}:${partes.minute}`;
 }
 
 /**
@@ -89,7 +84,7 @@ export function gerarCarimboSvg(op = {}) {
   const textoInferior = textoEmArco("100% INÚTIL", cx, cy, 118, 30, 3.2, "inferior");
   const corSvg = esc(cor);
   const fundoSvg = semFundo ? "" : `<rect width="1080" height="688" fill="${esc(fundo)}"/>`;
-  const dataTexto = formatarData(data);
+  const dataTexto = formatarDataHora(data);
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="688" viewBox="0 0 1080 688" role="img" aria-label="Autenticado, 1º cartório oficial de notas inúteis. Data ${esc(dataTexto)}. Protocolo ${esc(protocolo)}.">
 <defs>
