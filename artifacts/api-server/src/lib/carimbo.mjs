@@ -1,8 +1,8 @@
 // Gerador do carimbo "Selo Oficial da Inutilidade" em SVG.
 // Função pura, sem dependências: funciona no navegador e no servidor (ex.: sharp).
 
-const FONTE = "'Plus Jakarta Sans', 'Helvetica Neue', Arial, sans-serif";
-const COR_PAPEL = "#fffdf4";
+const FONTE = "'DejaVu Serif', Georgia, serif";
+const COR_PAPEL = "#f4f1e3";
 
 const esc = (s) =>
   String(s)
@@ -22,6 +22,7 @@ function textoEmArco(texto, cx, cy, raio, tamanho, posicao) {
     H: 0.68, I: 0.31, J: 0.52, K: 0.67, L: 0.55, M: 0.86, N: 0.70,
     O: 0.76, P: 0.61, Q: 0.76, R: 0.66, S: 0.61, T: 0.57, U: 0.69,
     V: 0.66, W: 0.94, X: 0.64, Y: 0.65, Z: 0.63,
+    "0": 0.68, "1": 0.40, "%": 0.88, Ú: 0.69,
   };
   const avancos = letras.map((ch) =>
     tamanho * (ch === " " ? 0.42 : (proporcao[ch] ?? 0.66))
@@ -57,10 +58,25 @@ function textoEmArco(texto, cx, cy, raio, tamanho, posicao) {
   return `<g font-size="${tamanho}" font-weight="700" text-anchor="middle" stroke="none">${itens}</g>`;
 }
 
-export function gerarProtocolo(data = new Date()) {
-  const ano = data.getFullYear();
-  const num = String(Math.floor(Math.random() * 999999) + 1).padStart(6, "0");
-  return `${num}/${ano}-INÚTIL`;
+function gerarPontosDeDesgaste() {
+  let estado = 0x4c415249;
+  const pontos = [];
+  for (let i = 0; i < 1700; i += 1) {
+    estado = (Math.imul(estado, 1664525) + 1013904223) >>> 0;
+    const x = (estado / 0xffffffff) * 800;
+    estado = (Math.imul(estado, 1664525) + 1013904223) >>> 0;
+    const y = (estado / 0xffffffff) * 420;
+    estado = (Math.imul(estado, 1664525) + 1013904223) >>> 0;
+    const raio = 0.28 + (estado / 0xffffffff) * 0.98;
+    pontos.push(`<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${raio.toFixed(2)}" />`);
+  }
+  return pontos.join("");
+}
+
+const PONTOS_DE_DESGASTE = gerarPontosDeDesgaste();
+
+export function gerarProtocolo() {
+  return String(Math.floor(Math.random() * 999999) + 1).padStart(6, "0");
 }
 
 export function formatarDataHora(data = new Date()) {
@@ -72,61 +88,73 @@ export function formatarDataHora(data = new Date()) {
   return txt.replace(", ", " às ");
 }
 
+function formatarData(data) {
+  return data.toLocaleDateString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 /**
  * @param {object} [op]
  * @param {Date}   [op.data]       data/hora do carimbo
  * @param {string} [op.protocolo]  número de protocolo
- * @param {string} [op.frase]      texto sob "AUTENTICADO" (padrão: "100% inútil")
  * @param {string} [op.cor]        cor principal
- * @returns {string} SVG (fundo transparente, 640x400)
+ * @returns {string} SVG do carimbo em 800x420
  */
 export function gerarCarimboSvg(op = {}) {
   const data = op.data ?? new Date();
-  const protocolo = op.protocolo ?? gerarProtocolo(data);
-  const frase = op.frase ?? "100% inútil";
+  const protocolo = op.protocolo ?? gerarProtocolo();
   const cor = op.cor ?? "#0b3d2e";
 
-  // Selo circular
-  const cx = 146;
-  const cy = 180;
-  const textoSuperior = textoEmArco("SELO OFICIAL", cx, cy, 70, 14, "superior");
-  const textoInferior = textoEmArco("DA INUTILIDADE", cx, cy, 70, 14, "inferior");
+  // Os dois arcos mantêm os glifos em pé, como no carimbo de referência.
+  const cx = 155;
+  const cy = 145;
+  const textoSuperior = textoEmArco("100% INÚTIL", cx, cy, 80, 17, "superior");
+  const textoInferior = textoEmArco("100% INÚTIL", cx, cy, 80, 17, "inferior");
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" role="img" aria-label="Selo Oficial da Inutilidade">
-  <g transform="translate(0 20) rotate(-6 320 180)">
-    <!-- fundo claro discreto: dá contraste uniforme sem contornar cada letra -->
-    <rect x="20" y="20" width="600" height="320" rx="30" fill="${COR_PAPEL}" fill-opacity="0.94" />
-    <g fill="${cor}" stroke="${cor}" opacity="0.88" font-family="${FONTE}">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420" role="img" aria-label="Carimbo autenticado do 1º cartório oficial de notas inúteis">
+  <defs>
+    <mask id="desgaste-tinta" maskUnits="userSpaceOnUse" x="0" y="0" width="800" height="420">
+      <rect width="800" height="420" fill="white" />
+      <g fill="black" stroke="none">${PONTOS_DE_DESGASTE}</g>
+    </mask>
+  </defs>
+  <rect x="6" y="6" width="788" height="408" rx="12" fill="${COR_PAPEL}" fill-opacity="0.96" />
+  <g fill="${cor}" stroke="${cor}" opacity="0.95" font-family="${FONTE}" mask="url(#desgaste-tinta)">
 
-    <!-- moldura dupla -->
-    <rect x="20" y="20" width="600" height="320" rx="30" fill="none" stroke-width="8" />
-    <rect x="34" y="34" width="572" height="292" rx="20" fill="none" stroke-width="2" />
+    <!-- Moldura principal -->
+    <rect x="31" y="28" width="738" height="236" rx="22" fill="none" stroke-width="8" />
+    <rect x="39" y="36" width="722" height="220" rx="16" fill="none" stroke-width="2" />
 
     <!-- selo -->
     <g>
-      <circle cx="${cx}" cy="${cy}" r="88" fill="none" stroke-width="5" />
-      <circle cx="${cx}" cy="${cy}" r="52" fill="none" stroke-width="2" />
+      <circle cx="${cx}" cy="${cy}" r="105" fill="none" stroke-width="5" />
+      <circle cx="${cx}" cy="${cy}" r="94" fill="none" stroke-width="2" />
+      <circle cx="${cx}" cy="${cy}" r="61" fill="none" stroke-width="2" />
       ${textoSuperior}
       ${textoInferior}
-      <circle cx="${cx - 70}" cy="${cy}" r="2.5" stroke="none" />
-      <circle cx="${cx + 70}" cy="${cy}" r="2.5" stroke="none" />
-      <text x="${cx}" y="${cy + 23}" font-size="68" font-weight="700" text-anchor="middle" fill="${cor}" stroke="none">§</text>
+      <circle cx="${cx - 82}" cy="${cy}" r="4" stroke="none" />
+      <circle cx="${cx + 82}" cy="${cy}" r="4" stroke="none" />
+      <text x="${cx}" y="${cy + 24}" font-size="78" font-weight="700" text-anchor="middle" stroke="none">§</text>
     </g>
 
-    <!-- texto principal -->
-    <g transform="translate(0 30)">
-    <g text-anchor="middle" stroke="none">
-      <text x="414" y="108" font-size="42" font-weight="800" textLength="300" lengthAdjust="spacingAndGlyphs">AUTENTICADO</text>
-      <text x="414" y="142" font-size="24" font-weight="800" letter-spacing="3">${esc(frase.toUpperCase())}</text>
-    </g>
-    <line x1="284" y1="156" x2="544" y2="156" stroke-width="1.5" stroke-linecap="round" />
+    <!-- Separador e identificação do cartório -->
+    <line x1="281" y1="47" x2="281" y2="245" stroke-width="6" stroke-linecap="round" />
+    <text x="525" y="121" font-size="51" font-weight="700" text-anchor="middle" stroke="none">AUTENTICADO</text>
+    <line x1="301" y1="151" x2="748" y2="151" stroke-width="6" stroke-linecap="round" />
+    <text x="525" y="190" font-size="27" font-weight="700" text-anchor="middle" stroke="none">1º cartório oficial de</text>
+    <text x="525" y="222" font-size="27" font-weight="700" text-anchor="middle" stroke="none">notas inúteis</text>
 
-    <g text-anchor="middle" stroke="none">
-      <text x="414" y="214" font-size="20" font-weight="800">${esc(formatarDataHora(data))}</text>
-      <text x="414" y="242" font-size="15" font-weight="700">Protocolo nº ${esc(protocolo)}</text>
-    </g>
-    </g>
-    </g>
+    <!-- Campos de data e protocolo -->
+    <text x="77" y="307" font-size="27" font-weight="700" stroke="none">DATA:</text>
+    <text x="455" y="307" font-size="28" font-weight="700" text-anchor="middle" stroke="none">${esc(formatarData(data))}</text>
+    <line x1="205" y1="313" x2="744" y2="313" stroke-width="3" />
+    <text x="77" y="376" font-size="26" font-weight="700" stroke="none">PROTOCOLO Nº:</text>
+    <text x="480" y="376" font-size="29" font-weight="700" letter-spacing="5" text-anchor="middle" stroke="none">${esc(protocolo)}</text>
+    <line x1="341" y1="382" x2="744" y2="382" stroke-width="3" />
   </g>
 </svg>`;
 }

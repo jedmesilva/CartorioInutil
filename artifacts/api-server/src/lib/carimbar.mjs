@@ -4,7 +4,8 @@ import sharp from "sharp";
 import { PDFDocument } from "pdf-lib";
 import { gerarCarimboSvg } from "./carimbo.mjs";
 
-const SVG_LARGURA = 640; // largura (viewBox) do SVG do carimbo
+const SVG_LARGURA = 800; // largura (viewBox) do SVG do carimbo
+const SVG_ALTURA = 420;
 
 export const TIPOS_IMAGEM = ["image/jpeg", "image/png", "image/webp"];
 export const TIPO_PDF = "application/pdf";
@@ -41,7 +42,9 @@ export async function carimbarImagem(buffer, tipo, onProgress = () => {}) {
   // O carimbo ocupa até 45% da largura e 50% da altura, no canto inferior direito.
   onProgress({ mensagem: "Preparando o selo..." });
   let largura = W * 0.45;
-  if ((largura * 400) / SVG_LARGURA > H * 0.5) largura = (H * 0.5 * SVG_LARGURA) / 400;
+  if ((largura * SVG_ALTURA) / SVG_LARGURA > H * 0.5) {
+    largura = (H * 0.5 * SVG_LARGURA) / SVG_ALTURA;
+  }
   const stamp = await carimboPng(gerarCarimboSvg(), largura);
   const meta = await sharp(stamp).metadata();
   const margem = Math.round(W * 0.03);

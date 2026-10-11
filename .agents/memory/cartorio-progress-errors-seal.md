@@ -5,11 +5,11 @@ description: Product rules for upload feedback, user-facing errors, and document
 
 - Show only the active upload/authentication status; upload can show its percentage, then show the current processing update without repeated labels or explanatory filler.
 - Keep operational failures generic and nontechnical in the client. Keep file-type and size validation actionable, and give users a simple next step for sharing failures.
-- The circular seal wording is exactly “SELO OFICIAL DA INUTILIDADE”; do not add “DOU FÉ”.
-- Split the seal wording into “SELO OFICIAL” on the upper arc and “DA INUTILIDADE” on the lower arc; keep both readable left-to-right, add side dots as separators, and balance the seal size with adjacent details.
+- The circular seal repeats “100% INÚTIL” on both upper and lower arcs; the main heading is “AUTENTICADO” with “1º cartório oficial de / notas inúteis” beneath it.
+- Put dynamic “DATA:” and “PROTOCOLO Nº:” fields below the main frame; show the date as DD/MM/YYYY and the protocol as six digits.
 - Do not include a “Tabelião” line on this project's authentication stamp.
-- Preserve solid green ink on a single translucent light backing inside the stamp frame; do not outline individual letters, which makes the seal look like scratches.
+- Match the user's reference with distressed dark-green serif ink on a light paper-colored card; do not outline individual letters.
 
-**Why:** The user said technical failure details confuse users and expose unnecessary information, explicitly corrected the seal copy, reported wide word gaps and an oversized seal, asked that neither text segment appear upside down, said a tabelião does not make sense on this project's stamp, and noted the green seal is hard to read on dark files. The user rejected the per-letter light outline because it fragmented the lettering and looked like scratches; a soft backing keeps the ink solid and provides a stable contrast surface.
+**Why:** The user asked to replace the previous seal with the attached reference. They rejected per-letter outlines because the lettering looked like scratches; the paper-colored card makes the reference's solid green ink readable on dark files.
 
-**How to apply:** Preserve these constraints when changing Cartório upload/authentication UI, error handling, or the shared stamp generator. If the seal copy changes, recheck both arcs, reading direction, spacing, and separator placement; keep the tabelião line omitted, the backing inside the frame, and the lettering free of contrast strokes across all file formats.
+**How to apply:** Preserve the reference's wording, serif hierarchy, distressed ink, and paper card when changing the shared generator. Keep date and protocol dynamic, omit the tabelião line, and verify the same SVG treatment in image and PDF output.
